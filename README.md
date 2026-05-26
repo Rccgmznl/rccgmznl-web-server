@@ -6,6 +6,17 @@ Built using Django and Python.
 
 ---
 
+# MUST READ
+
+Before contributing or committing any code, please read:
+
+- [Git Workflow](docs/git-flow.md)
+- [Environment Variables](docs/env.md)
+
+This helps keep the repository history clean and reduces merge conflicts during development.
+
+---
+
 ## Requirements
 
 - Python 3.12.12
@@ -27,7 +38,7 @@ This project uses `pyenv` to manage and lock the Python version.
 
 ```bash
 sudo pacman -S pyenv
-````
+```
 
 #### Ubuntu / Debian
 
@@ -51,7 +62,7 @@ brew install pyenv
 
 Install:
 
-* pyenv-win
+- pyenv-win
 
 Using PowerShell:
 
@@ -63,7 +74,7 @@ https://pyenv-win.github.io/pyenv-win/install.ps1 `
 
 Repository:
 
-* [https://github.com/pyenv-win/pyenv-win](https://github.com/pyenv-win/pyenv-win)
+- https://github.com/pyenv-win/pyenv-win
 
 ---
 
@@ -151,9 +162,7 @@ Update the values inside `.env`.
 
 See:
 
-```txt
-docs/env.md
-```
+- [Environment Variables Documentation](docs/env.md)
 
 for environment configuration details.
 
@@ -173,21 +182,27 @@ Project-specific documentation is located in `docs/`.
 
 ## Available Docs
 
-* Environment Variables
-  `docs/env.md`
+- [Git Workflow](docs/git-flow.md)
+- [Environment Variables](docs/env.md)
+- [References](docs/references.md)
 
 ---
 
 # Notes
 
-* `.venv/` should not be committed
-* `.python-version` should be committed
-* Environment variables are loaded from `.env`
-* Restart the shell after installing new Python versions if pyenv is not detected
-* SQLite database files are ignored from version control
-* Django migrations are committed and version controlled
+- `.venv/` should not be committed
+- `.python-version` should be committed
+- Environment variables are loaded from `.env`
+- Restart the shell after installing new Python versions if pyenv is not detected
+- SQLite database files are ignored from version control
+- Django migrations are committed and version controlled
 
 ---
 
 # License
-    `./LICENSE`
+
+See:
+
+```txt
+./LICENSE
+```
