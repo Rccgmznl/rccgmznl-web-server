@@ -1,0 +1,4 @@
+# Local enviroment
+venv
+.venv/
+.env
