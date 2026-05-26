@@ -184,6 +184,8 @@ Project-specific documentation is located in `docs/`.
 * `.python-version` should be committed
 * Environment variables are loaded from `.env`
 * Restart the shell after installing new Python versions if pyenv is not detected
+* SQLite database files are ignored from version control
+* Django migrations are committed and version controlled
 
 ---
 
