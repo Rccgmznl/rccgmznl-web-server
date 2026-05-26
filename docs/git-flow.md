@@ -61,7 +61,7 @@ git push origin feat/your-feature-name
 Create a PR targeting `dev`:
 
 ```bash
-gh pr create
+gh pr create --base dev
 ```
 
 ---
