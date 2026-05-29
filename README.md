@@ -23,6 +23,8 @@ This helps keep the repository history clean and reduces merge conflicts during 
 - pyenv
 - pip
 - venv
+- Docker
+- Docker Compose
 
 ---
 
@@ -171,7 +173,64 @@ for environment configuration details.
 # Run Development Server
 
 ```bash
-python manage.py runserver 6969
+python manage.py runserver 8000
+```
+
+---
+
+# Docker Compose Development
+
+The repository includes a development compose setup with:
+
+- PostgreSQL service
+- Web service built from this project
+- Source code volume mount for live code changes
+
+## 1. Ensure Environment Variables
+
+Set the database values in `.env` to match the docker-compose defaults:
+
+```env
+DATABASE_ENGINE=django.db.backends.postgresql
+DATABASE_NAME=rccgmznl
+DATABASE_USER=postgres
+DATABASE_PASSWORD=<set-a-local-secret>
+DATABASE_HOST=db
+DATABASE_PORT=5432
+```
+
+`DATABASE_PASSWORD` is required and must be set locally in `.env`.
+Do not commit real passwords to version control.
+
+## 2. Build and Start Services
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+## 3. Access Application
+
+- Django: http://localhost:8000
+- PostgreSQL: localhost:5432
+
+## 4. Stop Services
+
+```bash
+docker compose -f docker-compose.dev.yml down
+```
+
+## 5. Create Django Superuser
+
+Run this after the containers are up:
+
+```bash
+docker compose -f docker-compose.dev.yml exec web python manage.py createsuperuser
+```
+
+For non-docker local development:
+
+```bash
+python manage.py createsuperuser
 ```
 
 ---
@@ -194,7 +253,6 @@ Project-specific documentation is located in `docs/`.
 - `.python-version` should be committed
 - Environment variables are loaded from `.env`
 - Restart the shell after installing new Python versions if pyenv is not detected
-- SQLite database files are ignored from version control
 - Django migrations are committed and version controlled
 
 ---

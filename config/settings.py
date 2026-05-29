@@ -140,65 +140,40 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database Configuration
 # ==========================
 #
-# Supports:
-# - SQLite for local development
-# - External relational databases
+# Uses PostgreSQL for local and deployment environments.
 #
-# SQLite is enabled by default.
+# Non-sensitive defaults are development-friendly and align
+# with docker-compose service values.
+# Database password must be set via environment variables.
 #
-DATABASE_USE_SQLITE = (
-    get_env(
-        "DATABASE_USE_SQLITE",
-        default="true",
-    ).lower()
-    == "true"
-)
-
-if DATABASE_USE_SQLITE:
-    DATABASES = {
-        "default": {
-            "ENGINE": (
-                "django.db.backends.sqlite3"
-            ),
-            "NAME": (
-                BASE_DIR
-                / get_env(
-                    "DATABASE_NAME",
-                    default="db.sqlite3",
-                )
-            ),
-        }
+DATABASES = {
+    "default": {
+        "ENGINE": get_env(
+            "DATABASE_ENGINE",
+            default="django.db.backends.postgresql",
+        ),
+        "NAME": get_env(
+            "DATABASE_NAME",
+            default="rccgmznl",
+        ),
+        "USER": get_env(
+            "DATABASE_USER",
+            default="postgres",
+        ),
+        "PASSWORD": get_env(
+            "DATABASE_PASSWORD",
+            required=True,
+        ),
+        "HOST": get_env(
+            "DATABASE_HOST",
+            default="127.0.0.1",
+        ),
+        "PORT": get_env(
+            "DATABASE_PORT",
+            default="5432",
+        ),
     }
-
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": get_env(
-                "DATABASE_ENGINE",
-                required=True,
-            ),
-            "NAME": get_env(
-                "DATABASE_NAME",
-                required=True,
-            ),
-            "USER": get_env(
-                "DATABASE_USER",
-                required=True,
-            ),
-            "PASSWORD": get_env(
-                "DATABASE_PASSWORD",
-                required=True,
-            ),
-            "HOST": get_env(
-                "DATABASE_HOST",
-                required=True,
-            ),
-            "PORT": get_env(
-                "DATABASE_PORT",
-                required=True,
-            ),
-        }
-    }
+}
 
 # ==========================
 # Password Validation
