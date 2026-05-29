@@ -140,16 +140,13 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database Configuration
 # ==========================
 #
-# Supports:
-# - SQLite for local development
-# - External relational databases
-#
-# SQLite is enabled by default.
+# Supports PostgreSQL by default and SQLite when
+# DATABASE_USE_SQLITE is set to true.
 #
 DATABASE_USE_SQLITE = (
     get_env(
         "DATABASE_USE_SQLITE",
-        default="true",
+        default="false",
     ).lower()
     == "true"
 )
@@ -157,13 +154,11 @@ DATABASE_USE_SQLITE = (
 if DATABASE_USE_SQLITE:
     DATABASES = {
         "default": {
-            "ENGINE": (
-                "django.db.backends.sqlite3"
-            ),
+            "ENGINE": "django.db.backends.sqlite3",
             "NAME": (
                 BASE_DIR
                 / get_env(
-                    "DATABASE_NAME",
+                    "DATABASE_SQLITE_NAME",
                     default="db.sqlite3",
                 )
             ),
@@ -175,15 +170,15 @@ else:
         "default": {
             "ENGINE": get_env(
                 "DATABASE_ENGINE",
-                required=True,
+                default="django.db.backends.postgresql",
             ),
             "NAME": get_env(
                 "DATABASE_NAME",
-                required=True,
+                default="rccgmznl",
             ),
             "USER": get_env(
                 "DATABASE_USER",
-                required=True,
+                default="postgres",
             ),
             "PASSWORD": get_env(
                 "DATABASE_PASSWORD",
@@ -191,11 +186,11 @@ else:
             ),
             "HOST": get_env(
                 "DATABASE_HOST",
-                required=True,
+                default="127.0.0.1",
             ),
             "PORT": get_env(
                 "DATABASE_PORT",
-                required=True,
+                default="5432",
             ),
         }
     }
