@@ -1,10 +1,10 @@
 # Environment Configuration
 
-Environment variables are managed using a centralized environment loader located in:
+Environment variables are managed through the centralized environment loader located at:
 
 ```txt
 config/env.py
-````
+```
 
 ---
 
@@ -19,7 +19,7 @@ The goal is to keep configuration:
 * debuggable
 * predictable
 
-Environment variables are loaded centrally, but parsing behavior remains close to where values are used.
+Environment variables are loaded centrally, while parsing remains close to where values are used.
 
 Examples:
 
@@ -27,23 +27,27 @@ Examples:
 * list parsing is handled inline
 * environment-specific behavior is handled explicitly
 
-This avoids introducing unnecessary helper abstractions early in development.
+This keeps configuration easy to trace and reduces unnecessary complexity during development.
 
 ---
 
 # Environment Loading
 
-The application loads environment variables from:
+Environment variables are loaded from:
 
-```txt 
+```txt
 .env
 ```
 
-during startup.
+during application startup.
 
-If the `.env` file is missing, the server will fail to start.
+A `.env` file is required for local development.
 
-This ensures required runtime configuration is always available.
+Create one from the example template:
+
+```bash
+cp .env.example .env
+```
 
 ---
 
@@ -51,9 +55,9 @@ This ensures required runtime configuration is always available.
 
 ## `.env`
 
-Local runtime environment configuration.
+Local runtime configuration.
 
-Should never be committed.
+Should never be committed to version control.
 
 ---
 
@@ -71,9 +75,82 @@ Used for:
 
 ---
 
+# Database Configuration
+
+The project supports both SQLite and PostgreSQL.
+
+## SQLite Development
+
+Recommended for:
+
+* quick experimentation
+* feature development
+* contributors who do not need Docker
+* contributors who do not need a shared PostgreSQL environment
+
+Example:
+
+```env
+DATABASE_USE_SQLITE=true
+DATABASE_SQLITE_NAME=db.sqlite3
+```
+
+When SQLite is enabled, PostgreSQL configuration is ignored.
+
+---
+
+## PostgreSQL Development
+
+Recommended for:
+
+* Docker development
+* testing production-like behavior
+* validating migrations
+* team development
+
+Example:
+
+```env
+DATABASE_USE_SQLITE=false
+
+DATABASE_ENGINE=django.db.backends.postgresql
+DATABASE_NAME=rccgmznl
+DATABASE_USER=postgres
+DATABASE_PASSWORD=<set-a-local-secret>
+DATABASE_HOST=127.0.0.1
+DATABASE_PORT=5432
+```
+
+For Docker Compose development:
+
+```env
+DATABASE_USE_SQLITE=false
+
+DATABASE_ENGINE=django.db.backends.postgresql
+DATABASE_NAME=rccgmznl
+DATABASE_USER=postgres
+DATABASE_PASSWORD=<set-a-local-secret>
+DATABASE_HOST=db
+DATABASE_PORT=5432
+```
+
+The Docker network exposes the database service using the hostname:
+
+```txt
+db
+```
+
+instead of:
+
+```txt
+127.0.0.1
+```
+
+---
+
 # Example Configuration
 
-```env 
+```env
 DJANGO_DEBUG=true
 
 DJANGO_SECRET_KEY=
@@ -85,7 +162,6 @@ DJANGO_TIME_ZONE=UTC
 DJANGO_USE_I18N=true
 DJANGO_USE_TZ=true
 
-# Database
 DATABASE_USE_SQLITE=false
 DATABASE_SQLITE_NAME=db.sqlite3
 
@@ -101,15 +177,15 @@ DATABASE_PORT=5432
 
 # Accessing Environment Variables
 
-Environment variables are accessed using:
+Environment variables should be accessed through:
 
-```py 
+```python
 from config.env import get_env
 ```
 
 Example:
 
-```py 
+```python
 DEBUG = (
     get_env(
         "DJANGO_DEBUG",
@@ -119,14 +195,23 @@ DEBUG = (
 )
 ```
 
+Avoid direct access to:
+
+```python
+os.getenv(...)
+```
+
+throughout the codebase.
+
 ---
 
 # Notes
 
 * All environment variables are loaded as strings
 * Parsing is intentionally handled explicitly
-* Avoid directly accessing `os.getenv()` throughout the application
-* Centralize environment access through `config/env.py`
+* Environment access should be centralized through `config/env.py`
+* SQLite is intended primarily for local development
+* PostgreSQL should be used when validating deployment-related behavior
 
 ---
 
@@ -134,7 +219,7 @@ DEBUG = (
 
 Never commit:
 
-```txt 
+```txt
 .env
 ```
 
@@ -142,8 +227,11 @@ to version control.
 
 Sensitive values such as:
 
-* secret keys
+* Django secret keys
 * database credentials
 * API keys
+* third-party service credentials
 
 must remain private.
+
+Use `.env.example` as the public reference for required configuration.

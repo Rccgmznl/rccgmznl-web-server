@@ -1,4 +1,4 @@
-# Rccgmznl Server
+# RCCG MZNL Server
 
 Backend server for RCCG MZNL.
 
@@ -10,83 +10,52 @@ Built using Django and Python.
 
 Before contributing or committing any code, please read:
 
-- [Git Workflow](docs/git-flow.md)
-- [Environment Variables](docs/env.md)
+* [Git Workflow](docs/git-flow.md)
+* [Environment Variables](docs/env.md)
+* [Pyenv Setup](docs/pyenv.md)
+* [Docker Setup](docs/docker.md)
 
-This helps keep the repository history clean and reduces merge conflicts during development.
+### Which setup should I use?
+
+**Docker (recommended)**
+
+Use Docker if you want the standard development environment used by the team, including PostgreSQL and other project services.
+
+**Pyenv / Virtual Environment**
+
+Use this approach if you prefer running the application directly on your machine, want a lightweight setup, are experimenting locally, or do not need the full Docker environment. This setup can also be used with SQLite for quick development workflows. See the environment variable documentation for database configuration options.
+
+Reading these documents helps keep the repository history clean and reduces merge conflicts during development.
 
 ---
 
 ## Requirements
 
-- Python 3.12.12
-- pyenv
-- pip
-- venv
-- Docker
-- Docker Compose
+Required:
+
+* Python 3.12.12
+* Docker
+* Docker Compose
+
+Optional:
+
+* pyenv
+* pip
+* venv
 
 ---
 
-# Python Setup
+# Python Setup (Pyenv)
 
-This project uses `pyenv` to manage and lock the Python version.
+See the [Pyenv Setup](docs/pyenv.md) documentation for installation instructions.
 
-## Install pyenv
-
-### Linux
-
-#### Arch Linux
-
-```bash
-sudo pacman -S pyenv
-```
-
-#### Ubuntu / Debian
-
-```bash
-curl https://pyenv.run | bash
-```
-
----
-
-### macOS
-
-Using Homebrew:
-
-```bash
-brew install pyenv
-```
-
----
-
-### Windows
-
-Install:
-
-- pyenv-win
-
-Using PowerShell:
-
-```powershell
-Invoke-WebRequest -UseBasicParsing `
-https://pyenv-win.github.io/pyenv-win/install.ps1 `
-| Invoke-Expression
-```
-
-Repository:
-
-- https://github.com/pyenv-win/pyenv-win
-
----
+You may also refer to the official documentation links listed in [References](docs/references.md).
 
 ## Install Python Version
 
 ```bash
 pyenv install 3.12.12
 ```
-
----
 
 ## Set Local Python Version
 
@@ -101,8 +70,6 @@ This creates:
 ```txt
 .python-version
 ```
-
----
 
 ## Verify Python Version
 
@@ -126,25 +93,21 @@ Python 3.12.12
 python -m venv .venv
 ```
 
----
-
 ## Activate Virtual Environment
 
-### Linux / macOS
+Linux / macOS:
 
 ```bash
 source .venv/bin/activate
 ```
 
-### Windows (PowerShell)
+Windows (PowerShell):
 
 ```powershell
-.venv\\Scripts\\Activate.ps1
+.venv\Scripts\Activate.ps1
 ```
 
----
-
-# Install Dependencies
+## Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -164,43 +127,40 @@ Update the values inside `.env`.
 
 See:
 
-- [Environment Variables Documentation](docs/env.md)
+* [Environment Variables Documentation](docs/env.md)
 
-for environment configuration details.
+for configuration details.
 
 ---
 
 # Run Development Server
 
 ```bash
+python manage.py migrate
 python manage.py runserver 8000
 ```
 
 ---
 
-# Docker Compose Development
+# Docker Development
 
-The repository includes a development compose setup with:
+The repository includes a development Docker Compose setup with:
 
-- PostgreSQL service
-- Web service built from this project
-- Source code volume mount for live code changes
+* PostgreSQL
+* Django application container
+* Source code volume mounts for development
 
-## 1. Ensure Environment Variables
+## 1. Configure Environment Variables
 
-Set the database values in `.env` to match the docker-compose defaults:
+Copy:
 
-```env
-DATABASE_ENGINE=django.db.backends.postgresql
-DATABASE_NAME=rccgmznl
-DATABASE_USER=postgres
-DATABASE_PASSWORD=<set-a-local-secret>
-DATABASE_HOST=db
-DATABASE_PORT=5432
+```bash
+cp .env.example .env
 ```
 
-`DATABASE_PASSWORD` is required and must be set locally in `.env`.
-Do not commit real passwords to version control.
+Review the environment variable documentation for configuration details:
+
+* [Environment Variables Documentation](docs/env.md)
 
 ## 2. Build and Start Services
 
@@ -208,29 +168,21 @@ Do not commit real passwords to version control.
 docker compose -f docker-compose.dev.yml up --build
 ```
 
-## 3. Access Application
+## 3. Access Services
 
-- Django: http://localhost:8000
-- PostgreSQL: localhost:5432
+* Django: http://localhost:8000
+* PostgreSQL: localhost:5432
 
-## 4. Stop Services
-
-```bash
-docker compose -f docker-compose.dev.yml down
-```
-
-## 5. Create Django Superuser
-
-Run this after the containers are up:
+## 4. Create Django Superuser
 
 ```bash
 docker compose -f docker-compose.dev.yml exec web python manage.py createsuperuser
 ```
 
-For non-docker local development:
+## 5. Stop Services
 
 ```bash
-python manage.py createsuperuser
+docker compose -f docker-compose.dev.yml down
 ```
 
 ---
@@ -239,28 +191,26 @@ python manage.py createsuperuser
 
 Project-specific documentation is located in `docs/`.
 
-## Available Docs
+Available documentation:
 
-- [Git Workflow](docs/git-flow.md)
-- [Environment Variables](docs/env.md)
-- [References](docs/references.md)
+* [Git Workflow](docs/git-flow.md)
+* [Environment Variables](docs/env.md)
+* [Pyenv Setup](docs/pyenv.md)
+* [Docker Setup](docs/docker.md)
+* [References](docs/references.md)
 
 ---
 
 # Notes
 
-- `.venv/` should not be committed
-- `.python-version` should be committed
-- Environment variables are loaded from `.env`
-- Restart the shell after installing new Python versions if pyenv is not detected
-- Django migrations are committed and version controlled
+* `.venv/` should not be committed
+* `.python-version` should be committed
+* Environment variables are loaded from `.env`
+* Django migrations are committed and version controlled
+* Restart your shell if pyenv changes are not detected
 
 ---
 
 # License
 
-See:
-
-```txt
-./LICENSE
-```
+See `LICENSE`.
