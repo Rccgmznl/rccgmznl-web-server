@@ -140,40 +140,60 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database Configuration
 # ==========================
 #
-# Uses PostgreSQL for local and deployment environments.
+# Supports PostgreSQL by default and SQLite when
+# DATABASE_USE_SQLITE is set to true.
 #
-# Non-sensitive defaults are development-friendly and align
-# with docker-compose service values.
-# Database password must be set via environment variables.
-#
-DATABASES = {
-    "default": {
-        "ENGINE": get_env(
-            "DATABASE_ENGINE",
-            default="django.db.backends.postgresql",
-        ),
-        "NAME": get_env(
-            "DATABASE_NAME",
-            default="rccgmznl",
-        ),
-        "USER": get_env(
-            "DATABASE_USER",
-            default="postgres",
-        ),
-        "PASSWORD": get_env(
-            "DATABASE_PASSWORD",
-            required=True,
-        ),
-        "HOST": get_env(
-            "DATABASE_HOST",
-            default="127.0.0.1",
-        ),
-        "PORT": get_env(
-            "DATABASE_PORT",
-            default="5432",
-        ),
+DATABASE_USE_SQLITE = (
+    get_env(
+        "DATABASE_USE_SQLITE",
+        default="false",
+    ).lower()
+    == "true"
+)
+
+if DATABASE_USE_SQLITE:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": (
+                BASE_DIR
+                / get_env(
+                    "DATABASE_SQLITE_NAME",
+                    default="db.sqlite3",
+                )
+            ),
+        }
     }
-}
+
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": get_env(
+                "DATABASE_ENGINE",
+                default="django.db.backends.postgresql",
+            ),
+            "NAME": get_env(
+                "DATABASE_NAME",
+                default="rccgmznl",
+            ),
+            "USER": get_env(
+                "DATABASE_USER",
+                default="postgres",
+            ),
+            "PASSWORD": get_env(
+                "DATABASE_PASSWORD",
+                required=True,
+            ),
+            "HOST": get_env(
+                "DATABASE_HOST",
+                default="127.0.0.1",
+            ),
+            "PORT": get_env(
+                "DATABASE_PORT",
+                default="5432",
+            ),
+        }
+    }
 
 # ==========================
 # Password Validation
