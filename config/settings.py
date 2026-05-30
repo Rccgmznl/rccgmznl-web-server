@@ -66,6 +66,7 @@ ALLOWED_HOSTS = [
 # for the project.
 #
 INSTALLED_APPS = [
+    "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
