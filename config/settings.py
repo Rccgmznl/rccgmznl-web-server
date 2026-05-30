@@ -72,6 +72,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
+    "rest_framework",
+    "django_filters",
 ]
 
 # ==========================
@@ -82,6 +85,7 @@ INSTALLED_APPS = [
 #
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -194,6 +198,109 @@ else:
             ),
         }
     }
+
+# ==========================
+# API Configuration
+# ==========================
+#
+# Core DRF defaults for response shape, error handling,
+# throttling, pagination, filtering, ordering, and
+# URL-based versioning.
+#
+API_DEFAULT_VERSION = get_env(
+    "API_DEFAULT_VERSION",
+    default="v1",
+)
+
+API_ALLOWED_VERSIONS = [
+    version.strip()
+    for version in get_env(
+        "API_ALLOWED_VERSIONS",
+        default="v1",
+    ).split(",")
+    if version.strip()
+]
+
+API_PAGE_SIZE = int(
+    get_env(
+        "API_PAGE_SIZE",
+        default="20",
+    )
+)
+
+API_THROTTLE_ANON_RATE = get_env(
+    "API_THROTTLE_ANON_RATE",
+    default="100/hour",
+)
+
+API_THROTTLE_USER_RATE = get_env(
+    "API_THROTTLE_USER_RATE",
+    default="1000/hour",
+)
+
+DEFAULT_RENDERER_CLASSES = [
+    "config.api_renderers.StandardizedJSONRenderer",
+]
+
+if DEBUG:
+    DEFAULT_RENDERER_CLASSES.append(
+        "rest_framework.renderers.BrowsableAPIRenderer"
+    )
+
+REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": (
+        "config.api_exceptions.custom_exception_handler"
+    ),
+    "DEFAULT_RENDERER_CLASSES": DEFAULT_RENDERER_CLASSES,
+    "DEFAULT_VERSIONING_CLASS": (
+        "rest_framework.versioning.URLPathVersioning"
+    ),
+    "DEFAULT_VERSION": API_DEFAULT_VERSION,
+    "ALLOWED_VERSIONS": API_ALLOWED_VERSIONS,
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": API_THROTTLE_ANON_RATE,
+        "user": API_THROTTLE_USER_RATE,
+    },
+    "DEFAULT_PAGINATION_CLASS": (
+        "rest_framework.pagination.PageNumberPagination"
+    ),
+    "PAGE_SIZE": API_PAGE_SIZE,
+    "DEFAULT_FILTER_BACKENDS": [
+        (
+            "django_filters.rest_framework."
+            "DjangoFilterBackend"
+        ),
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
+}
+
+# ==========================
+# CORS Configuration
+# ==========================
+#
+# Comma-separated list of allowed frontend origins.
+#
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in get_env(
+        "CORS_ALLOWED_ORIGINS",
+        default="http://localhost:3000,http://127.0.0.1:3000",
+    ).split(",")
+    if origin.strip()
+]
+
+CORS_ALLOW_CREDENTIALS = (
+    get_env(
+        "CORS_ALLOW_CREDENTIALS",
+        default="true",
+    ).lower()
+    == "true"
+)
 
 # ==========================
 # Password Validation
