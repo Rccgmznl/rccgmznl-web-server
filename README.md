@@ -174,6 +174,51 @@ docker compose -f docker-compose.dev.yml up --build
 
 * Django: http://localhost:8000
 * PostgreSQL: localhost:5432
+
+## 4. Create Django Superuser
+
+```bash
+docker compose -f docker-compose.dev.yml exec web python manage.py createsuperuser
+```
+
+## 5. Stop Services
+
+```bash
+docker compose -f docker-compose.dev.yml down
+```
+
+---
+
+# Docker Development
+
+The repository includes a development Docker Compose setup with:
+
+* PostgreSQL
+* Django application container
+* Source code volume mounts for development
+
+## 1. Configure Environment Variables
+
+Copy:
+
+```bash
+cp .env.example .env
+```
+
+Review the environment variable documentation for configuration details:
+
+* [Environment Variables Documentation](docs/env.md)
+
+## 2. Build and Start Services
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+## 3. Access Services
+
+* Django: http://localhost:8000
+* PostgreSQL: localhost:5432
 * Swagger Documentation: http://localhost:8000/api/v1/schema/swagger/
 * Redoc Documentation: http://localhost:8000/api/v1/schema/redoc/
 
