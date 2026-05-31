@@ -128,7 +128,9 @@ Update the values inside `.env`.
 See:
 
 * [Environment Variables Documentation](docs/env.md)
+* [Environment Variables Documentation](docs/env.md)
 
+for configuration details.
 for configuration details.
 
 ---
@@ -202,6 +204,13 @@ Available documentation:
 * [Pyenv Setup](docs/pyenv.md)
 * [Docker Setup](docs/docker.md)
 * [References](docs/references.md)
+Available documentation:
+
+* [Git Workflow](docs/git-flow.md)
+* [Environment Variables](docs/env.md)
+* [Pyenv Setup](docs/pyenv.md)
+* [Docker Setup](docs/docker.md)
+* [References](docs/references.md)
 
 ---
 
@@ -212,9 +221,15 @@ Available documentation:
 * Environment variables are loaded from `.env`
 * Django migrations are committed and version controlled
 * Restart your shell if pyenv changes are not detected
+* `.venv/` should not be committed
+* `.python-version` should be committed
+* Environment variables are loaded from `.env`
+* Django migrations are committed and version controlled
+* Restart your shell if pyenv changes are not detected
 
 ---
 
 # License
 
+See `LICENSE`.
 See `LICENSE`.
