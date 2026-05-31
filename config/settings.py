@@ -75,7 +75,10 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "corsheaders",
     "rest_framework",
+    "rest_framework_simplejwt",
+    "drf_spectacular",
     "django_filters",
+    "apps.users",
 ]
 
 # ==========================
@@ -258,6 +261,12 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_VERSION": API_DEFAULT_VERSION,
     "ALLOWED_VERSIONS": API_ALLOWED_VERSIONS,
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
@@ -278,6 +287,9 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ],
+    "DEFAULT_SCHEMA_CLASS": (
+        "drf_spectacular.openapi.AutoSchema"
+    ),
 }
 
 # ==========================
@@ -389,3 +401,75 @@ STATIC_ROOT = (
 DEFAULT_AUTO_FIELD = (
     "django.db.models.BigAutoField"
 )
+
+# ==========================
+# Custom User Model
+# ==========================
+#
+# Use custom user model with email as primary login field.
+#
+AUTH_USER_MODEL = "users.User"
+
+# ==========================
+# JWT Configuration
+# ==========================
+#
+# JWT settings for SimpleJWT authentication.
+#
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "UPDATE_LAST_LOGIN": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "VERIFYING_KEY": None,
+    "AUDIENCE": None,
+    "ISSUER": None,
+    "JTI_CLAIM": "jti",
+    "TOKEN_TYPE_CLAIM": "token_type",
+}
+
+# ==========================
+# DRF Spectacular Configuration
+# ==========================
+#
+# API documentation using drf-spectacular.
+#
+SPECTACULAR_SETTINGS = {
+    "TITLE": "RCCG Church Management System API",
+    "DESCRIPTION": "API for managing church resources, members, and events.",
+    "VERSION": API_DEFAULT_VERSION,
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
+    "SERVERS": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Local development server",
+        },
+        {
+            "url": "http://127.0.0.1:8000",
+            "description": "Local IP development server",
+        },
+    ],
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization",
+            "description": "JWT access token (e.g., 'Bearer <token>')",
+        },
+    },
+    "SECURITY": [
+        {"Bearer": []},
+    ],
+    "TAGS": [
+        {"name": "Authentication", "description": "User authentication endpoints"},
+        {"name": "Users", "description": "User management endpoints"},
+    ],
+    "SORT_OPERATION_PARAMETERS": False,
+    "ENUM_GENERATE_CHOICE_DESCRIPTION": True,
+    "GENERATE_SCHEMA_SECURITY_DESCRIPTION": True,
+}
