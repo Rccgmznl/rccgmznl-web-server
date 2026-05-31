@@ -79,39 +79,8 @@ class AuthViewSet(ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
-        summary="Get Current User Profile",
-        description="Retrieve the authenticated user's profile information.",
-        responses={
-            200: UserSerializer,
-            401: inline_serializer(
-                name="UnauthorizedCurrentUserError",
-                fields={"detail": serializers.CharField()},
-            ),
-        },
-        tags=["Authentication"],
-    )
-    @action(
-        detail=False,
-        methods=["get"],
-        permission_classes=[IsAuthenticated],
-        url_path="me",
-    )
-    def current_user(self, request):
-        """
-        Get the current authenticated user's profile.
-        
-        Args:
-            request: HTTP request from authenticated user.
-            
-        Returns:
-            Response: Current user's profile data.
-        """
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @extend_schema(
-        summary="Update User Profile",
-        description="Update the authenticated user's profile information.",
+        summary="Get/Update User Profile",
+        description="Retrieve or update the authenticated user's profile information.",
         request=UserProfileUpdateSerializer,
         responses={
             200: UserSerializer,
@@ -123,39 +92,46 @@ class AuthViewSet(ViewSet):
                 },
             ),
             401: inline_serializer(
-                name="UnauthorizedUpdateProfileError",
+                name="UnauthorizedProfileError",
                 fields={"detail": serializers.CharField()},
             ),
         },
         tags=["Authentication"],
-        methods=["patch"],
     )
     @action(
         detail=False,
-        methods=["patch"],
+        methods=["get", "patch"],
         permission_classes=[IsAuthenticated],
         url_path="me",
     )
-    def update_profile(self, request):
+    def profile(self, request):
         """
-        Update the current authenticated user's profile.
+        Get or update the current authenticated user's profile.
+        
+        GET: Retrieve current user's profile information.
+        PATCH: Update first_name and/or last_name.
         
         Args:
-            request: HTTP request with updated profile data.
+            request: HTTP request from authenticated user.
             
         Returns:
-            Response: Updated user profile data.
+            Response: User profile data.
         """
-        serializer = UserProfileUpdateSerializer(
-            request.user, data=request.data, partial=True
-        )
-        if serializer.is_valid():
-            user = serializer.save()
-            return Response(
-                UserSerializer(user).data,
-                status=status.HTTP_200_OK,
+        if request.method == "GET":
+            serializer = UserSerializer(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        elif request.method == "PATCH":
+            serializer = UserProfileUpdateSerializer(
+                request.user, data=request.data, partial=True
             )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if serializer.is_valid():
+                user = serializer.save()
+                return Response(
+                    UserSerializer(user).data,
+                    status=status.HTTP_200_OK,
+                )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
         summary="Change Password",
