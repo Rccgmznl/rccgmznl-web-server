@@ -172,6 +172,8 @@ docker compose -f docker-compose.dev.yml up --build
 
 * Django: http://localhost:8000
 * PostgreSQL: localhost:5432
+* Swagger Documentation: http://localhost:8000/api/v1/schema/swagger/
+* Redoc Documentation: http://localhost:8000/api/v1/schema/redoc/
 
 ## 4. Create Django Superuser
 
@@ -186,6 +188,8 @@ docker compose -f docker-compose.dev.yml down
 ```
 
 ---
+
+
 
 # Documentation
 
