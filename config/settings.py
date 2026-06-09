@@ -66,12 +66,19 @@ ALLOWED_HOSTS = [
 # for the project.
 #
 INSTALLED_APPS = [
+    "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "drf_spectacular",
+    "django_filters",
+    "apps.users",
 ]
 
 # ==========================
@@ -82,6 +89,7 @@ INSTALLED_APPS = [
 #
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -196,6 +204,118 @@ else:
     }
 
 # ==========================
+# API Configuration
+# ==========================
+#
+# Core DRF defaults for response shape, error handling,
+# throttling, pagination, filtering, ordering, and
+# URL-based versioning.
+#
+API_DEFAULT_VERSION = get_env(
+    "API_DEFAULT_VERSION",
+    default="v1",
+)
+
+API_ALLOWED_VERSIONS = [
+    version.strip()
+    for version in get_env(
+        "API_ALLOWED_VERSIONS",
+        default="v1",
+    ).split(",")
+    if version.strip()
+]
+
+API_PAGE_SIZE = int(
+    get_env(
+        "API_PAGE_SIZE",
+        default="20",
+    )
+)
+
+API_THROTTLE_ANON_RATE = get_env(
+    "API_THROTTLE_ANON_RATE",
+    default="100/hour",
+)
+
+API_THROTTLE_USER_RATE = get_env(
+    "API_THROTTLE_USER_RATE",
+    default="1000/hour",
+)
+
+DEFAULT_RENDERER_CLASSES = [
+    "config.api_renderers.StandardizedJSONRenderer",
+]
+
+if DEBUG:
+    DEFAULT_RENDERER_CLASSES.append(
+        "rest_framework.renderers.BrowsableAPIRenderer"
+    )
+
+REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": (
+        "config.api_exceptions.custom_exception_handler"
+    ),
+    "DEFAULT_RENDERER_CLASSES": DEFAULT_RENDERER_CLASSES,
+    "DEFAULT_VERSIONING_CLASS": (
+        "rest_framework.versioning.URLPathVersioning"
+    ),
+    "DEFAULT_VERSION": API_DEFAULT_VERSION,
+    "ALLOWED_VERSIONS": API_ALLOWED_VERSIONS,
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": API_THROTTLE_ANON_RATE,
+        "user": API_THROTTLE_USER_RATE,
+    },
+    "DEFAULT_PAGINATION_CLASS": (
+        "rest_framework.pagination.PageNumberPagination"
+    ),
+    "PAGE_SIZE": API_PAGE_SIZE,
+    "DEFAULT_FILTER_BACKENDS": [
+        (
+            "django_filters.rest_framework."
+            "DjangoFilterBackend"
+        ),
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
+    "DEFAULT_SCHEMA_CLASS": (
+        "drf_spectacular.openapi.AutoSchema"
+    ),
+}
+
+# ==========================
+# CORS Configuration
+# ==========================
+#
+# Comma-separated list of allowed frontend origins.
+#
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in get_env(
+        "CORS_ALLOWED_ORIGINS",
+        default="http://localhost:3000,http://127.0.0.1:3000",
+    ).split(",")
+    if origin.strip()
+]
+
+CORS_ALLOW_CREDENTIALS = (
+    get_env(
+        "CORS_ALLOW_CREDENTIALS",
+        default="true",
+    ).lower()
+    == "true"
+)
+
+# ==========================
 # Password Validation
 # ==========================
 #
@@ -281,3 +401,75 @@ STATIC_ROOT = (
 DEFAULT_AUTO_FIELD = (
     "django.db.models.BigAutoField"
 )
+
+# ==========================
+# Custom User Model
+# ==========================
+#
+# Use custom user model with email as primary login field.
+#
+AUTH_USER_MODEL = "users.User"
+
+# ==========================
+# JWT Configuration
+# ==========================
+#
+# JWT settings for SimpleJWT authentication.
+#
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1440),  # 24 hours
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=15),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "UPDATE_LAST_LOGIN": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "VERIFYING_KEY": None,
+    "AUDIENCE": None,
+    "ISSUER": None,
+    "JTI_CLAIM": "jti",
+    "TOKEN_TYPE_CLAIM": "token_type",
+}
+
+# ==========================
+# DRF Spectacular Configuration
+# ==========================
+#
+# API documentation using drf-spectacular.
+#
+SPECTACULAR_SETTINGS = {
+    "TITLE": "RCCG Church Management System API",
+    "DESCRIPTION": "API for managing church resources, members, and events.",
+    "VERSION": API_DEFAULT_VERSION,
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
+    "SERVERS": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Local development server",
+        },
+        {
+            "url": "http://127.0.0.1:8000",
+            "description": "Local IP development server",
+        },
+    ],
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization",
+            "description": "JWT access token (e.g., 'Bearer <token>')",
+        },
+    },
+    "SECURITY": [
+        {"Bearer": []},
+    ],
+    "TAGS": [
+        {"name": "Authentication", "description": "User authentication endpoints"},
+        {"name": "Users", "description": "User management endpoints"},
+    ],
+    "SORT_OPERATION_PARAMETERS": False,
+    "ENUM_GENERATE_CHOICE_DESCRIPTION": True,
+    "GENERATE_SCHEMA_SECURITY_DESCRIPTION": True,
+}

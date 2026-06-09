@@ -128,7 +128,9 @@ Update the values inside `.env`.
 See:
 
 * [Environment Variables Documentation](docs/env.md)
+* [Environment Variables Documentation](docs/env.md)
 
+for configuration details.
 for configuration details.
 
 ---
@@ -187,10 +189,66 @@ docker compose -f docker-compose.dev.yml down
 
 ---
 
+# Docker Development
+
+The repository includes a development Docker Compose setup with:
+
+* PostgreSQL
+* Django application container
+* Source code volume mounts for development
+
+## 1. Configure Environment Variables
+
+Copy:
+
+```bash
+cp .env.example .env
+```
+
+Review the environment variable documentation for configuration details:
+
+* [Environment Variables Documentation](docs/env.md)
+
+## 2. Build and Start Services
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+## 3. Access Services
+
+* Django: http://localhost:8000
+* PostgreSQL: localhost:5432
+* Swagger Documentation: http://localhost:8000/api/v1/schema/swagger/
+* Redoc Documentation: http://localhost:8000/api/v1/schema/redoc/
+
+## 4. Create Django Superuser
+
+```bash
+docker compose -f docker-compose.dev.yml exec web python manage.py createsuperuser
+```
+
+## 5. Stop Services
+
+```bash
+docker compose -f docker-compose.dev.yml down
+```
+
+---
+
+
+
 # Documentation
 
 Project-specific documentation is located in `docs/`.
 
+Available documentation:
+
+* [Git Workflow](docs/git-flow.md)
+* [Environment Variables](docs/env.md)
+* [Pyenv Setup](docs/pyenv.md)
+* [Docker Setup](docs/docker.md)
+* [References](docs/references.md)
 Available documentation:
 
 * [Git Workflow](docs/git-flow.md)
@@ -208,9 +266,15 @@ Available documentation:
 * Environment variables are loaded from `.env`
 * Django migrations are committed and version controlled
 * Restart your shell if pyenv changes are not detected
+* `.venv/` should not be committed
+* `.python-version` should be committed
+* Environment variables are loaded from `.env`
+* Django migrations are committed and version controlled
+* Restart your shell if pyenv changes are not detected
 
 ---
 
 # License
 
+See `LICENSE`.
 See `LICENSE`.
