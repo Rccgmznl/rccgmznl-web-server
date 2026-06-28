@@ -41,4 +41,5 @@ urlpatterns = [
     
     # API v1
     path("api/v1/auth/", include("apps.users.urls")),
+    path("api/v1/events/", include("apps.events.urls")),
 ]
