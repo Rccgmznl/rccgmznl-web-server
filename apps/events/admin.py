@@ -15,7 +15,7 @@ class EventGalleryInline(admin.TabularInline):
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
-    list_display = ("id", "title", "is_recurring", "created_at")
+    list_display = ("id", "title", "is_recurring", "created_by", "created_at")
     list_filter = ("is_recurring", "created_at")
     search_fields = ("title", "description")
     ordering = ("-created_at",)
@@ -27,6 +27,7 @@ class EventScheduleAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "event",
+        "created_by",
         "recurrence_type",
         "day_of_week",
         "day_of_month",
@@ -41,7 +42,7 @@ class EventScheduleAdmin(admin.ModelAdmin):
 
 @admin.register(EventGallery)
 class EventGalleryAdmin(admin.ModelAdmin):
-    list_display = ("id", "event", "display_order", "created_at")
+    list_display = ("id", "event", "created_by", "display_order", "created_at")
     list_filter = ("created_at",)
     search_fields = ("event__title", "caption")
     ordering = ("event", "display_order")

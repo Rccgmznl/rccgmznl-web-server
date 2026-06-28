@@ -3,6 +3,13 @@ from django.db import models
 
 
 class Event(models.Model):
+    created_by = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        related_name="created_events",
+        null=True,
+        blank=True,
+    )
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     is_recurring = models.BooleanField(default=False)
@@ -43,6 +50,13 @@ class EventSchedule(models.Model):
         Event,
         on_delete=models.CASCADE,
         related_name="schedules",
+    )
+    created_by = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        related_name="created_event_schedules",
+        null=True,
+        blank=True,
     )
     recurrence_type = models.CharField(
         max_length=20,
@@ -156,6 +170,13 @@ class EventGallery(models.Model):
         Event,
         on_delete=models.CASCADE,
         related_name="galleries",
+    )
+    created_by = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        related_name="created_event_galleries",
+        null=True,
+        blank=True,
     )
     image_url = models.URLField(max_length=500)
     caption = models.CharField(max_length=255, blank=True)
