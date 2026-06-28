@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "django_filters",
     "apps.users",
+    "apps.events",
 ]
 
 # ==========================
