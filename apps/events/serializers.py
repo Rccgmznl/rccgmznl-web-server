@@ -2,6 +2,17 @@ from django.db import transaction
 from rest_framework import serializers
 
 from apps.events.models import Event, EventGallery, EventSchedule
+from apps.events.services import validate_gallery_image_file
+
+
+class GalleryImageUploadSerializer(serializers.Serializer):
+    file = serializers.FileField(write_only=True)
+    url = serializers.URLField(read_only=True)
+    path = serializers.CharField(read_only=True)
+
+    def validate_file(self, value):
+        validate_gallery_image_file(value)
+        return value
 
 
 class EventScheduleSerializer(serializers.ModelSerializer):
