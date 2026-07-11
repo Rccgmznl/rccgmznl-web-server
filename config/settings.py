@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "django_filters",
     "apps.users",
+    "apps.events",
 ]
 
 # ==========================
@@ -390,6 +391,19 @@ STATIC_URL = "static/"
 
 STATIC_ROOT = (
     BASE_DIR / "staticfiles"
+)
+
+MEDIA_URL = get_env(
+    "MEDIA_URL",
+    default="/media/",
+)
+
+MEDIA_ROOT = (
+    BASE_DIR
+    / get_env(
+        "MEDIA_ROOT",
+        default="media",
+    )
 )
 
 # ==========================
