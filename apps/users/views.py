@@ -1,8 +1,10 @@
+from django.conf import settings
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -21,7 +23,7 @@ class AuthViewSet(ViewSet):
     """
     ViewSet for authentication-related endpoints.
     
-    Provides user registration, login, token refresh, password change,
+    Provides user registration, password change, logout,
     and user profile management.
     """
 
@@ -185,15 +187,8 @@ class AuthViewSet(ViewSet):
 
     @extend_schema(
         summary="Logout",
-        description="Logout the authenticated user. Token blacklist support.",
-        request=inline_serializer(
-            name="LogoutRequest",
-            fields={
-                "refresh": serializers.CharField(
-                    help_text="Refresh token to blacklist."
-                ),
-            },
-        ),
+        description="Logout the authenticated user and clear refresh cookie.",
+        request=None,
         responses={
             200: inline_serializer(
                 name="LogoutResponse",
@@ -221,17 +216,23 @@ class AuthViewSet(ViewSet):
         Logout the current authenticated user.
         
         Args:
-            request: HTTP request with optional refresh token to blacklist.
+            request: HTTP request from authenticated user.
             
         Returns:
             Response: Logout success message.
         """
-        # In a production environment, you would blacklist the refresh token here
-        # For now, we simply return a success response
-        return Response(
+        response = Response(
             {"message": "Logout successful."},
             status=status.HTTP_200_OK,
         )
+
+        response.delete_cookie(
+            key=settings.JWT_REFRESH_COOKIE_NAME,
+            path=settings.JWT_REFRESH_COOKIE_PATH,
+            samesite=settings.JWT_REFRESH_COOKIE_SAMESITE,
+        )
+
+        return response
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -246,7 +247,10 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
     @extend_schema(
         summary="Login / Obtain Tokens",
-        description="Authenticate with email and password to obtain JWT tokens.",
+        description=(
+            "Authenticate with email and password to obtain an access token. "
+            "Refresh token is stored in a secure HttpOnly cookie."
+        ),
         request=inline_serializer(
             name="LoginRequest",
             fields={
@@ -260,9 +264,6 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             200: inline_serializer(
                 name="LoginResponse",
                 fields={
-                    "refresh": serializers.CharField(
-                        help_text="Refresh token for obtaining new access tokens."
-                    ),
                     "access": serializers.CharField(
                         help_text="Access token for API requests."
                     ),
@@ -284,25 +285,46 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             request: HTTP request with email and password.
             
         Returns:
-            Response: Access token, refresh token, and user data.
+            Response: Access token and user data, with refresh cookie set.
         """
-        return super().post(request, *args, **kwargs)
+        response = super().post(request, *args, **kwargs)
+
+        if response.status_code == status.HTTP_200_OK and "refresh" in response.data:
+            refresh_token = response.data.pop("refresh")
+            max_age = int(
+                settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()
+            )
+
+            response.set_cookie(
+                key=settings.JWT_REFRESH_COOKIE_NAME,
+                value=refresh_token,
+                max_age=max_age,
+                httponly=settings.JWT_REFRESH_COOKIE_HTTPONLY,
+                secure=settings.JWT_REFRESH_COOKIE_SECURE,
+                samesite=settings.JWT_REFRESH_COOKIE_SAMESITE,
+                path=settings.JWT_REFRESH_COOKIE_PATH,
+            )
+
+        return response
 
 
-class TokenRefreshView:
+class TokenRefreshView(APIView):
     """
-    View for refreshing JWT tokens.
-    
-    Note: This uses DRF Simple JWT's built-in TokenRefreshView
-    but can be customized if needed.
+    View for refreshing JWT access tokens.
+
+    Reads refresh token from secure HttpOnly cookie and returns
+    a new access token when valid.
     """
 
     permission_classes = [AllowAny]
 
     @extend_schema(
         summary="Refresh Access Token",
-        description="Use refresh token to obtain a new access token.",
-        request=TokenRefreshSerializer,
+        description=(
+            "Use refresh token from secure HttpOnly cookie "
+            "to obtain a new access token."
+        ),
+        request=None,
         responses={
             200: inline_serializer(
                 name="RefreshResponse",
@@ -321,15 +343,23 @@ class TokenRefreshView:
     )
     def post(self, request):
         """
-        Refresh the access token using a refresh token.
+        Refresh the access token using refresh token cookie.
         
         Args:
-            request: HTTP request with refresh token.
+            request: HTTP request with refresh token cookie.
             
         Returns:
             Response: New access token.
         """
-        serializer = TokenRefreshSerializer(data=request.data)
+        refresh_token = request.COOKIES.get(settings.JWT_REFRESH_COOKIE_NAME)
+        if not refresh_token:
+            return Response(
+                {"detail": "Refresh token cookie not found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        serializer = TokenRefreshSerializer(data={"refresh": refresh_token})
         if serializer.is_valid():
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
