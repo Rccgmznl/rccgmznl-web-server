@@ -4,10 +4,6 @@ on:
   push:
     branches:
       - dev
-  pull_request:
-    branches:
-      - dev
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,6 +22,6 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: ./backend
+          context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/rccgmznl-backend:latest
