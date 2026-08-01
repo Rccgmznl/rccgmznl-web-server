@@ -13,6 +13,36 @@ from apps.events.services import upload_gallery_image_file
 
 
 @extend_schema_view(
+    list=extend_schema(
+        summary="List Events",
+        description=(
+            "List events with optional search, ordering, and filtering by recurring flag."
+        ),
+        responses={
+            200: EventSerializer(many=True),
+            401: inline_serializer(
+                name="EventsUnauthorizedError",
+                fields={"detail": serializers.CharField()},
+            ),
+        },
+        tags=["Events"],
+    ),
+    retrieve=extend_schema(
+        summary="Retrieve Event",
+        description="Retrieve a single event by ID.",
+        responses={
+            200: EventSerializer,
+            401: inline_serializer(
+                name="EventUnauthorizedError",
+                fields={"detail": serializers.CharField()},
+            ),
+            404: inline_serializer(
+                name="EventNotFoundError",
+                fields={"detail": serializers.CharField()},
+            ),
+        },
+        tags=["Events"],
+    ),
     create=extend_schema(
         summary="Create Event",
         description=(
@@ -21,7 +51,17 @@ from apps.events.services import upload_gallery_image_file
             "then the returned image_url should be sent in the event payload."
         ),
         request=EventSerializer,
-        responses={201: EventSerializer},
+        responses={
+            201: EventSerializer,
+            400: inline_serializer(
+                name="EventCreateValidationError",
+                fields={"detail": serializers.CharField()},
+            ),
+            401: inline_serializer(
+                name="EventCreateUnauthorizedError",
+                fields={"detail": serializers.CharField()},
+            ),
+        },
         examples=[
             OpenApiExample(
                 "Create Event With Image URL",
@@ -57,7 +97,21 @@ from apps.events.services import upload_gallery_image_file
             "Gallery rows should reference image_url values returned from the upload endpoint."
         ),
         request=EventSerializer,
-        responses={200: EventSerializer},
+        responses={
+            200: EventSerializer,
+            400: inline_serializer(
+                name="EventUpdateValidationError",
+                fields={"detail": serializers.CharField()},
+            ),
+            401: inline_serializer(
+                name="EventUpdateUnauthorizedError",
+                fields={"detail": serializers.CharField()},
+            ),
+            404: inline_serializer(
+                name="EventUpdateNotFoundError",
+                fields={"detail": serializers.CharField()},
+            ),
+        },
         tags=["Events"],
     ),
     partial_update=extend_schema(
@@ -67,7 +121,37 @@ from apps.events.services import upload_gallery_image_file
             "with the provided list. Upload image files first and send the resulting image_url values."
         ),
         request=EventSerializer,
-        responses={200: EventSerializer},
+        responses={
+            200: EventSerializer,
+            400: inline_serializer(
+                name="EventPartialUpdateValidationError",
+                fields={"detail": serializers.CharField()},
+            ),
+            401: inline_serializer(
+                name="EventPartialUpdateUnauthorizedError",
+                fields={"detail": serializers.CharField()},
+            ),
+            404: inline_serializer(
+                name="EventPartialUpdateNotFoundError",
+                fields={"detail": serializers.CharField()},
+            ),
+        },
+        tags=["Events"],
+    ),
+    destroy=extend_schema(
+        summary="Delete Event",
+        description="Delete an event by ID.",
+        responses={
+            204: None,
+            401: inline_serializer(
+                name="EventDeleteUnauthorizedError",
+                fields={"detail": serializers.CharField()},
+            ),
+            404: inline_serializer(
+                name="EventDeleteNotFoundError",
+                fields={"detail": serializers.CharField()},
+            ),
+        },
         tags=["Events"],
     ),
 )
@@ -100,6 +184,14 @@ class GalleryImageUploadView(APIView):
                     "url": serializers.URLField(),
                     "path": serializers.CharField(),
                 },
+            ),
+            400: inline_serializer(
+                name="GalleryImageUploadValidationError",
+                fields={"detail": serializers.CharField()},
+            ),
+            401: inline_serializer(
+                name="GalleryImageUploadUnauthorizedError",
+                fields={"detail": serializers.CharField()},
             ),
         },
         examples=[

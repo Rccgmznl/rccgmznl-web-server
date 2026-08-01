@@ -236,6 +236,59 @@ docker compose -f docker-compose.dev.yml down
 
 ---
 
+# Authentication (JWT + Cookie Refresh)
+
+The API uses JWT for access tokens and an HttpOnly cookie for refresh tokens.
+
+Flow summary:
+
+* `POST /api/v1/auth/login/` returns `access` in JSON and sets refresh token as a cookie.
+* `POST /api/v1/auth/token/refresh/` reads refresh token from cookie and returns a new `access` token.
+* `POST /api/v1/auth/logout/` clears the refresh token cookie.
+
+Important behavior:
+
+* Frontend should not store refresh token in localStorage/sessionStorage.
+* Frontend must send requests with credentials so browser includes cookies.
+* In local HTTP development, set `JWT_REFRESH_COOKIE_SECURE=false` in `.env`.
+
+## Example requests (curl)
+
+Login (store cookie):
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/login/ \
+	-H "Content-Type: application/json" \
+	-c cookies.txt \
+	-d '{"email":"user@example.com","password":"your-password"}'
+```
+
+Refresh (send cookie, no refresh token in body):
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/token/refresh/ \
+	-b cookies.txt
+```
+
+Logout (send cookie so server can clear it):
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/logout/ \
+	-H "Authorization: Bearer <access-token>" \
+	-b cookies.txt
+```
+
+## Example request behavior (frontend)
+
+```javascript
+await fetch("/api/v1/auth/token/refresh/", {
+	method: "POST",
+	credentials: "include",
+});
+```
+
+---
+
 
 
 # Documentation

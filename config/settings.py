@@ -316,6 +316,18 @@ CORS_ALLOW_CREDENTIALS = (
     == "true"
 )
 
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in get_env(
+        "CSRF_TRUSTED_ORIGINS",
+        default=(
+            "http://localhost:3000,"
+            "http://127.0.0.1:3000,"
+        ),
+    ).split(",")
+    if origin.strip()
+]
+
 # ==========================
 # Password Validation
 # ==========================
@@ -446,6 +458,31 @@ SIMPLE_JWT = {
     "JTI_CLAIM": "jti",
     "TOKEN_TYPE_CLAIM": "token_type",
 }
+
+JWT_REFRESH_COOKIE_NAME = get_env(
+    "JWT_REFRESH_COOKIE_NAME",
+    default="refresh_token",
+)
+
+JWT_REFRESH_COOKIE_PATH = get_env(
+    "JWT_REFRESH_COOKIE_PATH",
+    default="/api/v1/auth/token/refresh/",
+)
+
+JWT_REFRESH_COOKIE_SECURE = (
+    get_env(
+        "JWT_REFRESH_COOKIE_SECURE",
+        default="true",
+    ).lower()
+    == "true"
+)
+
+JWT_REFRESH_COOKIE_HTTPONLY = True
+
+JWT_REFRESH_COOKIE_SAMESITE = get_env(
+    "JWT_REFRESH_COOKIE_SAMESITE",
+    default="Lax",
+)
 
 # ==========================
 # DRF Spectacular Configuration
