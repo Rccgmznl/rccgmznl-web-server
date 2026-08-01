@@ -23,25 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_PATH = BASE_DIR / ".env"
 
 # ==========================
-# Environment Validation
-# ==========================
-#
-# Prevent the application from starting
-# if the .env file is missing.
-#
-if not ENV_PATH.exists():
-    raise FileNotFoundError(
-        ".env file missing. Server cannot start."
-    )
-
-# ==========================
 # Load Environment Variables
 # ==========================
 #
 # Loads all variables from the .env file
 # into the runtime environment.
 #
-load_dotenv(ENV_PATH)
+if ENV_PATH.exists():
+    load_dotenv(ENV_PATH)
 
 
 def get_env(

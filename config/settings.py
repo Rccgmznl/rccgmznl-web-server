@@ -316,6 +316,18 @@ CORS_ALLOW_CREDENTIALS = (
     == "true"
 )
 
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in get_env(
+        "CSRF_TRUSTED_ORIGINS",
+        default=(
+            "http://localhost:3000,"
+            "http://127.0.0.1:3000,"
+        ),
+    ).split(",")
+    if origin.strip()
+]
+
 # ==========================
 # Password Validation
 # ==========================
