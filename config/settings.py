@@ -58,6 +58,11 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
+OPENAPI_SERVER_URL = get_env(
+    "OPENAPI_SERVER_URL",
+    default="http://localhost:8000",
+)
+
 # ==========================
 # Installed Applications
 # ==========================
@@ -497,12 +502,12 @@ SPECTACULAR_SETTINGS = {
     "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
     "SERVERS": [
         {
-            "url": "http://localhost:8000",
-            "description": "Local development server",
+            "url": OPENAPI_SERVER_URL,
+            "description": "Development server",
         },
         {
-            "url": "http://127.0.0.1:8000",
-            "description": "Local IP development server",
+            "url": "http://localhost:8000",
+            "description": "Local development server",
         },
     ],
     "SECURITY_DEFINITIONS": {
