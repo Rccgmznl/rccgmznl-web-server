@@ -44,6 +44,9 @@ urlpatterns = [
     # API v1
     path("api/v1/auth/", include("apps.users.urls")),
     path("api/v1/events/", include("apps.events.urls")),
+    path("api/v1/basic-events/", include("apps.basic_events.urls")),
+    path("api/v1/bible-references/", include("apps.basic_events.bible_reference_urls")),
+    
 ]
 
 if settings.DEBUG:
