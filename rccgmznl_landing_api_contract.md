@@ -142,6 +142,26 @@ interface Sermon {
 ```
 
 ## Hero About
+
+| Method | Endpoint | Auth | Purpose |
+|---|---|---|---|
+| GET | `/api/about/` | Public | Get About sections |
+| POST | `/api/about/` | Admin | Create an About section with its image |
+| PATCH | `/api/about/{id}/` | Admin | Update About text and optionally replace its image |
+
+Create and update requests use `multipart/form-data`. Send the image in the same request as the other fields:
+
+```text
+title: About us
+description: ...
+image: <File>
+image_alt_text: About us
+mission: ...
+vision: ...
+```
+
+`image` is required when creating an About section and optional when updating one. If it is omitted during an update, the existing image is retained. The response returns the complete canonical About object, including the generated `image_url`.
+
 ```ts
 interface About {
   title: string;

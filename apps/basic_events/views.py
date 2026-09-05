@@ -1,16 +1,17 @@
 from drf_spectacular.utils import extend_schema_view, extend_schema, inline_serializer
 from django.db import transaction
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from apps.basic_events.models import BasicEvent, BibleReference, HeroImage, About, Sermon
-from apps.basic_events.serializers import BasicEventSerializer, BibleReferenceSerializer, HeroImageOrderSerializer, HeroImageSerializer, AboutSerializer, SermonSerializer
+from apps.basic_events.serializers import AboutSerializer, BasicEventSerializer, BibleReferenceSerializer, HeroImageOrderSerializer, HeroImageSerializer, SermonSerializer
+from apps.events.services import upload_gallery_image_file
 
 @extend_schema_view(
     list=extend_schema(
@@ -470,6 +471,7 @@ class AboutViewSet(viewsets.ModelViewSet):
     serializer_class = AboutSerializer
     http_method_names = ["get", "post", "put", "patch", "delete"]
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     pagination_class = PageNumberPagination
 

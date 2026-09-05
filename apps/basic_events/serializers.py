@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from apps.events.services import upload_gallery_image_file, validate_gallery_image_file
 from apps.basic_events.models import (
     BasicEvent,
     BibleReference,
@@ -72,6 +73,37 @@ class HeroGallerySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class AboutSerializer(serializers.ModelSerializer):
+    image = serializers.FileField(write_only=True, required=False)
+    image_url = serializers.URLField(read_only=True)
+
     class Meta:
         model = About
         fields = "__all__"
+
+    def validate_image(self, value):
+        validate_gallery_image_file(value)
+        return value
+
+    def create(self, validated_data):
+        image = validated_data.pop("image", None)
+        if image is None:
+            raise serializers.ValidationError({"image": "This field is required."})
+
+        upload_result = upload_gallery_image_file(
+            image,
+            request=self.context.get("request"),
+        )
+        validated_data["image_url"] = upload_result["url"]
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        image = validated_data.pop("image", None)
+        if image is not None:
+            upload_result = upload_gallery_image_file(
+                image,
+                request=self.context.get("request"),
+            )
+            validated_data["image_url"] = upload_result["url"]
+
+        return super().update(instance, validated_data)
+
