@@ -25,7 +25,7 @@ from apps.events.services import upload_gallery_image_file
                 fields={"detail": serializers.CharField()},
             ),
         },
-        tags=["Events"],
+        tags=["Events-V2"],
     ),
     retrieve=extend_schema(
         summary="Retrieve Event",
@@ -41,7 +41,7 @@ from apps.events.services import upload_gallery_image_file
                 fields={"detail": serializers.CharField()},
             ),
         },
-        tags=["Events"],
+        tags=["Events-V2"],
     ),
     create=extend_schema(
         summary="Create Event",
@@ -88,7 +88,7 @@ from apps.events.services import upload_gallery_image_file
                 request_only=True,
             ),
         ],
-        tags=["Events"],
+        tags=["Events-V2"],
     ),
     update=extend_schema(
         summary="Update Event",
@@ -112,7 +112,7 @@ from apps.events.services import upload_gallery_image_file
                 fields={"detail": serializers.CharField()},
             ),
         },
-        tags=["Events"],
+        tags=["Events-V2"],
     ),
     partial_update=extend_schema(
         summary="Partially Update Event",
@@ -136,7 +136,7 @@ from apps.events.services import upload_gallery_image_file
                 fields={"detail": serializers.CharField()},
             ),
         },
-        tags=["Events"],
+        tags=["Events-V2"],
     ),
     destroy=extend_schema(
         summary="Delete Event",
@@ -152,7 +152,7 @@ from apps.events.services import upload_gallery_image_file
                 fields={"detail": serializers.CharField()},
             ),
         },
-        tags=["Events"],
+        tags=["Events-V2"],
     ),
 )
 class EventViewSet(viewsets.ModelViewSet):
@@ -209,7 +209,7 @@ class GalleryImageUploadView(APIView):
                 response_only=True,
             ),
         ],
-        tags=["Events"],
+        tags=["Events-V2"],
     )
 
     def post(self, request, *args, **kwargs):

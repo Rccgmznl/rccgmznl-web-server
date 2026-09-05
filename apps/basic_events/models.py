@@ -33,7 +33,7 @@ class BibleReference(models.Model):
 class HeroImage(models.Model):
     url = models.URLField()
     alt_text = models.CharField(max_length=255)
-    order = models.PositiveIntegerField()
+    order = models.PositiveIntegerField(unique=True)
 
     def __str__(self):
         return self.alt_text
@@ -54,7 +54,7 @@ class WelcomeContent(models.Model):
         verbose_name = "Welcome Content"
         verbose_name_plural = "Welcome Contents"
 
-class LastestSermon(models.Model):
+class Sermon(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     date = models.DateField()
@@ -68,8 +68,8 @@ class LastestSermon(models.Model):
         return self.title
 
     class Meta:
-        verbose_name = "Lastest Sermon"
-        verbose_name_plural = "Lastest Sermons"
+        verbose_name = "Sermon"
+        verbose_name_plural = "Sermons"
 
 class HeroGallery(models.Model):
     image = models.URLField()
@@ -82,3 +82,17 @@ class HeroGallery(models.Model):
     class Meta:
         verbose_name = "Hero Gallery"
         verbose_name_plural = "Hero Galleries"
+class About(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    image_url = models.URLField()
+    image_alt_text = models.CharField(max_length=255)
+    mission = models.TextField()
+    vision = models.TextField()
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = "About"
+        verbose_name_plural = "Abouts"

@@ -4,8 +4,9 @@ from apps.basic_events.models import (
     BibleReference,
     HeroImage,
     WelcomeContent,
-    LastestSermon,
+    Sermon,
     HeroGallery,
+    About,
 )
 
 class BasicEventSerializer(serializers.ModelSerializer):
@@ -28,12 +29,17 @@ class WelcomeContentSerializer(serializers.ModelSerializer):
         model = WelcomeContent
         fields = "__all__"
 
-class LastestSermonSerializer(serializers.ModelSerializer):
+class SermonSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LastestSermon
+        model = Sermon
         fields = "__all__"
 
 class HeroGallerySerializer(serializers.ModelSerializer):
     class Meta:
         model = HeroGallery
+        fields = "__all__"
+
+class AboutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = About
         fields = "__all__"

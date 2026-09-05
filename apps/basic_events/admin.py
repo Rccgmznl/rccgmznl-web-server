@@ -5,7 +5,7 @@ from apps.basic_events.models import (
     BibleReference,
     HeroImage,
     WelcomeContent,
-    LastestSermon,
+    Sermon,
     HeroGallery,
 )
 
@@ -30,8 +30,8 @@ class WelcomeContentAdmin(admin.ModelAdmin):
     list_display = ("id", "text")
     search_fields = ("text",)
 
-@admin.register(LastestSermon)
-class LastestSermonAdmin(admin.ModelAdmin):
+@admin.register(Sermon)
+class SermonAdmin(admin.ModelAdmin):
     list_display = ("id", "title", "date", "preacher")
     search_fields = ("title", "description", "preacher", "tags")
     ordering = ("-date",)

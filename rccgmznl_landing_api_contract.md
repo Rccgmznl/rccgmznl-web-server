@@ -126,10 +126,10 @@ Frontend limits: title 120 chars, description 1000 chars, cover max 1.5 MB, JPEG
 |---|---|---|---|
 | GET | `/api/sermon/?pagination` | Public | Get sermons |
 | GET | `/api/sermon/{id}` | Get a single sermon |
-| PATCH | `/api/events/{id}/` | Admin | Edit the current sermon |
+| PATCH | `/api/sermon/{id}/` | Admin | Edit the current sermon |
 
 ```ts
-interface LastestSeremon {
+interface Seremon {
   id: number;
   title: string;
   description: string;
@@ -143,7 +143,7 @@ interface LastestSeremon {
 
 ## Hero About
 ```ts
-interface LastestSeremon {
+interface About {
   title: string;
   description: string;
   image: { url: string; alt_text: string };
