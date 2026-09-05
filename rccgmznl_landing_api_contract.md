@@ -68,7 +68,7 @@ interface HeroImage {
 }
 ```
 
-POST uses multipart: `image: File`, `alt_text?: string`. DELETE returns `{ "id": <deleted_id> }`. Order request:
+POST, PUT, and PATCH use multipart form data. Send `image: File`, `alt_text`, and `order` in the same request. `image` is required when creating an image and optional when updating one; omitting it retains the existing image. The response returns the complete canonical `HeroImage`. DELETE returns `{ "id": <deleted_id> }`. Order request:
 
 ```json
 { "image_ids": [4, 9, 2] }
@@ -114,9 +114,9 @@ interface UpcomingEvent {
 
 GET sorts by `start_date` ascending and returns only events with `start_date >= today`. With `limit=1`, `data` is an array of zero or one event. Empty array is valid and means no upcoming event.
 
-POST multipart: `title`, `description`, `start_date`, `cover_image: File`.
+POST uses multipart form data with `title`, `description`, `start_date`, `cover_image: File`, `cover_image_alt_text`, and `external_url`. The image is uploaded and stored as part of the same request.
 
-PATCH multipart: `title`, `description`, `start_date`, `cover_image?: File`. If no new image is supplied, retain the existing cover. Response returns the complete updated event.
+PUT and PATCH use multipart form data with the same fields. `cover_image` is optional when updating; if no new image is supplied, the existing cover is retained. Response returns the complete updated event.
 
 Frontend limits: title 120 chars, description 1000 chars, cover max 1.5 MB, JPEG/PNG/WebP/AVIF. Backend should reject past start dates.
 

@@ -11,9 +11,39 @@ from apps.basic_events.models import (
 )
 
 class BasicEventSerializer(serializers.ModelSerializer):
+    cover_image = serializers.FileField(write_only=True, required=False)
+    cover_image_url = serializers.URLField(read_only=True)
+
     class Meta:
         model = BasicEvent
         fields = "__all__"
+
+    def validate_cover_image(self, value):
+        validate_gallery_image_file(value)
+        return value
+
+    def create(self, validated_data):
+        cover_image = validated_data.pop("cover_image", None)
+        if cover_image is None:
+            raise serializers.ValidationError({"cover_image": "This field is required."})
+
+        upload_result = upload_gallery_image_file(
+            cover_image,
+            request=self.context.get("request"),
+        )
+        validated_data["cover_image_url"] = upload_result["url"]
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        cover_image = validated_data.pop("cover_image", None)
+        if cover_image is not None:
+            upload_result = upload_gallery_image_file(
+                cover_image,
+                request=self.context.get("request"),
+            )
+            validated_data["cover_image_url"] = upload_result["url"]
+
+        return super().update(instance, validated_data)
 
 class BibleReferenceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,11 +51,40 @@ class BibleReferenceSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class HeroImageSerializer(serializers.ModelSerializer):
+    image = serializers.FileField(write_only=True, required=False)
+    url = serializers.URLField(read_only=True)
     order = serializers.IntegerField(min_value=1, max_value=10)
 
     class Meta:
         model = HeroImage
         fields = "__all__"
+
+    def validate_image(self, value):
+        validate_gallery_image_file(value)
+        return value
+
+    def create(self, validated_data):
+        image = validated_data.pop("image", None)
+        if image is None:
+            raise serializers.ValidationError({"image": "This field is required."})
+
+        upload_result = upload_gallery_image_file(
+            image,
+            request=self.context.get("request"),
+        )
+        validated_data["url"] = upload_result["url"]
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        image = validated_data.pop("image", None)
+        if image is not None:
+            upload_result = upload_gallery_image_file(
+                image,
+                request=self.context.get("request"),
+            )
+            validated_data["url"] = upload_result["url"]
+
+        return super().update(instance, validated_data)
 
     def validate_order(self, value):
         if (

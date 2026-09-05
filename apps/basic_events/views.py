@@ -11,7 +11,6 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from apps.basic_events.models import BasicEvent, BibleReference, HeroImage, About, Sermon
 from apps.basic_events.serializers import AboutSerializer, BasicEventSerializer, BibleReferenceSerializer, HeroImageOrderSerializer, HeroImageSerializer, SermonSerializer
-from apps.events.services import upload_gallery_image_file
 
 @extend_schema_view(
     list=extend_schema(
@@ -108,6 +107,7 @@ class BasicEventViewSet(viewsets.ModelViewSet):
     serializer_class = BasicEventSerializer
     http_method_names = ["get", "post", "put", "patch", "delete"]
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["title", "start_date"]
     search_fields = ["title", "description"]
@@ -328,6 +328,7 @@ class HeroImageViewSet(viewsets.ModelViewSet):
     serializer_class = HeroImageSerializer
     http_method_names = ["get", "post", "put", "patch", "delete"]
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     pagination_class = PageNumberPagination
 
