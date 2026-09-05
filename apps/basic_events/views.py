@@ -186,14 +186,25 @@ class BasicEventViewSet(viewsets.ModelViewSet):
 
         return Response(self.get_serializer(event).data)
     
+@extend_schema_view(
+    list=extend_schema(tags=["Hero-Images"]),
+    retrieve=extend_schema(tags=["Hero-Images"]),
+    create=extend_schema(tags=["Hero-Images"]),
+    update=extend_schema(tags=["Hero-Images"]),
+    partial_update=extend_schema(tags=["Hero-Images"]),
+    destroy=extend_schema(tags=["Hero-Images"]),
+)
 class HeroImageViewSet(viewsets.ModelViewSet):
     queryset = HeroImage.objects.order_by("order")
     serializer_class = HeroImageSerializer
     http_method_names = ["get", "post", "put", "patch", "delete"]
-    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     pagination_class = PageNumberPagination
+
+    def get_permissions(self):
+        permission_class = AllowAny if self.request.method == "GET" else IsAuthenticated
+        return [permission_class()]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -466,6 +477,10 @@ class SermonViewSet(viewsets.ModelViewSet):
     queryset = Sermon.objects.all()
     serializer_class = SermonSerializer
     http_method_names = ["get", "post", "put", "patch", "delete"]
-    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     pagination_class = PageNumberPagination
+
+    def get_permissions(self):
+        permission_class = AllowAny if self.request.method == "GET" else IsAuthenticated
+        return [permission_class()]

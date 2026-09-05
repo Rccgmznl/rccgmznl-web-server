@@ -122,9 +122,39 @@ class WelcomeContentSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class SermonSerializer(serializers.ModelSerializer):
+    cover_image = serializers.FileField(write_only=True, required=False)
+    cover_image_url = serializers.URLField(read_only=True)
+
     class Meta:
         model = Sermon
         fields = "__all__"
+
+    def validate_cover_image(self, value):
+        validate_gallery_image_file(value)
+        return value
+
+    def create(self, validated_data):
+        cover_image = validated_data.pop("cover_image", None)
+        if cover_image is None:
+            raise serializers.ValidationError({"cover_image": "This field is required."})
+
+        upload_result = upload_gallery_image_file(
+            cover_image,
+            request=self.context.get("request"),
+        )
+        validated_data["cover_image_url"] = upload_result["url"]
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        cover_image = validated_data.pop("cover_image", None)
+        if cover_image is not None:
+            upload_result = upload_gallery_image_file(
+                cover_image,
+                request=self.context.get("request"),
+            )
+            validated_data["cover_image_url"] = upload_result["url"]
+
+        return super().update(instance, validated_data)
 
 class HeroGallerySerializer(serializers.ModelSerializer):
     class Meta:

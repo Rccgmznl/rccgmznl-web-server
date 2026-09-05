@@ -125,9 +125,10 @@ Frontend limits: title 120 chars, description 1000 chars, cover max 1.5 MB, JPEG
 
 | Method | Endpoint | Auth | Purpose |
 |---|---|---|---|
-| GET | `/api/sermon/?pagination` | Public | Get sermons |
-| GET | `/api/sermon/{id}` | Get a single sermon |
-| PATCH | `/api/sermon/{id}/` | Admin | Edit the current sermon |
+| GET | `/api/sermon/` | Public | Get sermons |
+| GET | `/api/sermon/{id}/` | Public | Get a single sermon |
+| POST | `/api/sermon/` | Admin | Create a sermon with its cover image |
+| PATCH | `/api/sermon/{id}/` | Admin | Edit a sermon and optionally replace its cover image |
 
 ```ts
 interface Sermon {
@@ -140,6 +141,8 @@ interface Sermon {
   tags: string;
   external_url: string;
 }
+
+Create and update requests use `multipart/form-data` with `title`, `description`, `date`, `cover_image: File`, `cover_image_alt_text`, `preacher`, `tags`, and `external_url`. `cover_image` is required on create and optional on update. If omitted during an update, the existing cover image is retained. The existing `/api/sermons/` route remains available as a backwards-compatible alias.
 ```
 
 ## Hero About

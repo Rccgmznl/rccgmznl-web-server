@@ -51,6 +51,7 @@ urlpatterns = [
     path(f"api/{settings.API_DEFAULT_VERSION}/events/", include("apps.basic_events.urls")),
     path(f"api/{settings.API_DEFAULT_VERSION}/hero/", include("apps.basic_events.hero_urls")),
     path(f"api/{settings.API_DEFAULT_VERSION}/about/", include("apps.basic_events.about_urls")),
+    path(f"api/{settings.API_DEFAULT_VERSION}/sermon/", include("apps.basic_events.sermon_urls")),
     path(f"api/{settings.API_DEFAULT_VERSION}/sermons/", include("apps.basic_events.sermon_urls")),
    
     
