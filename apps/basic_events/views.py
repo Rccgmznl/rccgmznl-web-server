@@ -1,13 +1,16 @@
 from drf_spectacular.utils import extend_schema_view, extend_schema, inline_serializer
+from django.db import transaction
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from apps.basic_events.models import BasicEvent, BibleReference, HeroImage, About, Sermon
-from apps.basic_events.serializers import BasicEventSerializer, BibleReferenceSerializer, HeroImageSerializer, AboutSerializer, SermonSerializer
+from apps.basic_events.serializers import BasicEventSerializer, BibleReferenceSerializer, HeroImageOrderSerializer, HeroImageSerializer, AboutSerializer, SermonSerializer
 
 @extend_schema_view(
     list=extend_schema(
@@ -320,17 +323,37 @@ class BibleReferenceViewSet(viewsets.ModelViewSet):
     ),
 )
 class HeroImageViewSet(viewsets.ModelViewSet):
-    queryset = HeroImage.objects.all()
+    queryset = HeroImage.objects.order_by("order")
     serializer_class = HeroImageSerializer
     http_method_names = ["get", "post", "put", "patch", "delete"]
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     pagination_class = PageNumberPagination
 
-    @action(detail=False, methods=["post"], url_path="order")
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order = serializer.validated_data["order"]
+
+        with transaction.atomic():
+            existing_image = HeroImage.objects.select_for_update().filter(order=order).first()
+            if existing_image is None and HeroImage.objects.count() >= 10:
+                existing_image = HeroImage.objects.select_for_update().order_by("-order", "-id").first()
+
+            if existing_image is not None:
+                serializer = self.get_serializer(existing_image, data=request.data)
+                serializer.is_valid(raise_exception=True)
+                self.perform_update(serializer)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
     @extend_schema(
         summary="Order hero images",
-        description="Endpoint to order hero images",
+        description="Update the order of every hero image with a list of image IDs and orders.",
+        request=HeroImageOrderSerializer,
         responses={
             200: HeroImageSerializer,
             401: inline_serializer(
@@ -342,9 +365,35 @@ class HeroImageViewSet(viewsets.ModelViewSet):
         },
         tags=["Hero-Images"],
     )
+    @action(detail=False, methods=["post"], url_path="order")
     def order(self, request):
-        # Implement hero image ordering logic here
-        pass
+        serializer = HeroImageOrderSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        requested_orders = serializer.validated_data["images"]
+
+        with transaction.atomic():
+            hero_images = list(HeroImage.objects.select_for_update().order_by("id"))
+            existing_ids = {hero_image.id for hero_image in hero_images}
+            requested_ids = {image["id"] for image in requested_orders}
+
+            if requested_ids != existing_ids:
+                raise ValidationError(
+                    {"images": "Include every existing hero image exactly once."}
+                )
+
+            temporary_order_start = max(
+                [hero_image.order for hero_image in hero_images] + [10]
+            ) + len(hero_images) + 1
+            for index, hero_image in enumerate(hero_images):
+                hero_image.order = temporary_order_start + index
+            HeroImage.objects.bulk_update(hero_images, ["order"])
+
+            order_by_id = {image["id"]: image["order"] for image in requested_orders}
+            for hero_image in hero_images:
+                hero_image.order = order_by_id[hero_image.id]
+            HeroImage.objects.bulk_update(hero_images, ["order"])
+
+        return Response(self.get_serializer(HeroImage.objects.order_by("order"), many=True).data)
 
 @extend_schema_view(
     list=extend_schema(

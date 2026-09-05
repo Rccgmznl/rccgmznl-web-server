@@ -20,9 +20,41 @@ class BibleReferenceSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class HeroImageSerializer(serializers.ModelSerializer):
+    order = serializers.IntegerField(min_value=1, max_value=10)
+
     class Meta:
         model = HeroImage
         fields = "__all__"
+
+    def validate_order(self, value):
+        if (
+            self.instance
+            and HeroImage.objects.exclude(pk=self.instance.pk).filter(order=value).exists()
+        ):
+            raise serializers.ValidationError(
+                "That order is already in use. Use the order endpoint to reorder images."
+            )
+        return value
+
+
+class HeroImageOrderItemSerializer(serializers.Serializer):
+    id = serializers.IntegerField(min_value=1)
+    order = serializers.IntegerField(min_value=1, max_value=10)
+
+
+class HeroImageOrderSerializer(serializers.Serializer):
+    images = HeroImageOrderItemSerializer(many=True)
+
+    def validate_images(self, images):
+        image_ids = [image["id"] for image in images]
+        orders = [image["order"] for image in images]
+
+        if len(image_ids) != len(set(image_ids)):
+            raise serializers.ValidationError("Each hero image ID must be included only once.")
+        if len(orders) != len(set(orders)):
+            raise serializers.ValidationError("Each hero image order must be unique.")
+
+        return images
 
 class WelcomeContentSerializer(serializers.ModelSerializer):
     class Meta:
