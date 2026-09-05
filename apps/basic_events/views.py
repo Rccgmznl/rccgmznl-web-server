@@ -6,8 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import PageNumberPagination
-from apps.basic_events.models import BasicEvent, BibleReference, HeroImage, About
-from apps.basic_events.serializers import BasicEventSerializer, BibleReferenceSerializer, HeroImageSerializer, AboutSerializer
+from apps.basic_events.models import BasicEvent, BibleReference, HeroImage, About, Sermon
+from apps.basic_events.serializers import BasicEventSerializer, BibleReferenceSerializer, HeroImageSerializer, AboutSerializer, SermonSerializer
 
 @extend_schema_view(
     list=extend_schema(
@@ -327,6 +327,25 @@ class HeroImageViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     pagination_class = PageNumberPagination
 
+    @action(detail=False, methods=["post"], url_path="order")
+    @extend_schema(
+        summary="Order hero images",
+        description="Endpoint to order hero images",
+        responses={
+            200: HeroImageSerializer,
+            401: inline_serializer(
+                name="Unauthorized",
+                fields={
+                    "detail": "string",
+                },
+            ),
+        },
+        tags=["Hero-Images"],
+    )
+    def order(self, request):
+        # Implement hero image ordering logic here
+        pass
+
 @extend_schema_view(
     list=extend_schema(
         summary="Retrieve a list of about sections",
@@ -400,6 +419,84 @@ class HeroImageViewSet(viewsets.ModelViewSet):
 class AboutViewSet(viewsets.ModelViewSet):
     queryset = About.objects.all()
     serializer_class = AboutSerializer
+    http_method_names = ["get", "post", "put", "patch", "delete"]
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    pagination_class = PageNumberPagination
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="Retrieve a list of sermons",
+        description="Endpoint to retrieve a list of sermons",
+        responses={200: SermonSerializer},
+        tags=["Sermon"],
+    ),
+    retrieve=extend_schema(
+        summary="Retrieve a specific sermon",
+        description="Endpoint to retrieve a specific sermon by its ID",
+        responses={200: SermonSerializer},
+        tags=["Sermon"],
+    ),
+    create=extend_schema(
+        summary="Create a new sermon",
+        description="Endpoint to create a new sermon",
+        responses={
+            201: SermonSerializer,
+            401: inline_serializer(
+                name="Unauthorized",
+                fields={
+                    "detail": "string",
+                },
+            ),
+        },
+        tags=["Sermon"],
+    ),
+    update=extend_schema(
+        summary="Update an existing sermon",
+        description="Endpoint to update an existing sermon by its ID",
+        responses={
+            200: SermonSerializer,
+            401: inline_serializer(
+                name="Unauthorized",
+                fields={
+                    "detail": "string",
+                },
+            ),
+        },
+        tags=["Sermon"],
+    ),
+    partial_update=extend_schema(
+        summary="Partially update an existing sermon",
+        description="Endpoint to partially update an existing sermon by its ID",
+        responses={
+            200: SermonSerializer,
+            401: inline_serializer(
+                name="Unauthorized",
+                fields={
+                    "detail": "string",
+                },
+            ),
+        },
+        tags=["Sermon"],
+    ),
+    destroy=extend_schema(
+        summary="Delete a sermon",
+        description="Endpoint to delete a sermon by its ID",
+        responses={
+            204: None,
+            401: inline_serializer(
+                name="Unauthorized",
+                fields={
+                    "detail": "string",
+                },
+            ),
+        },
+        tags=["Sermon"],   
+    ),
+)
+class SermonViewSet(viewsets.ModelViewSet):
+    queryset = Sermon.objects.all()
+    serializer_class = SermonSerializer
     http_method_names = ["get", "post", "put", "patch", "delete"]
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]

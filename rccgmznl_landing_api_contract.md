@@ -129,7 +129,7 @@ Frontend limits: title 120 chars, description 1000 chars, cover max 1.5 MB, JPEG
 | PATCH | `/api/sermon/{id}/` | Admin | Edit the current sermon |
 
 ```ts
-interface Seremon {
+interface Sermon {
   id: number;
   title: string;
   description: string;
