@@ -35,9 +35,10 @@ Scope: featured Bible verse, hero images, welcome section, and homepage event co
 
 | Method | Endpoint | Auth | Purpose |
 |---|---|---|---|
-| GET | `/api/hero/bible-verse/` | Public | Get hero bible verse |
-| POST| `/api/hero/bible-verse/` | Admin | Create hero if None |
-| PATCH | `/api/hero/bible-verse/` | Admin | Update hero bible verse |
+| GET | `/api/hero/bible-verses/` | Public | Get hero bible verse |
+| PATCH | `/api/hero/bible-verses/` | Admin | Update hero bible verse |
+
+The Bible verse is a singleton dataset. `GET` returns the one configured verse. `PATCH` creates it the first time if it does not exist, then updates it thereafter. There are no list, detail, or delete endpoints.
 
 ```ts
 interface FeaturedBibleVerse {

@@ -1,11 +1,11 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from apps.basic_events.views import BibleReferenceViewSet, HeroImageViewSet
+from apps.basic_events.views import BibleReferenceView, HeroImageViewSet
 router = DefaultRouter()
-router.register(r"bible-verses", BibleReferenceViewSet, basename="bible-verses")
 router.register(r"images", HeroImageViewSet, basename="images")
 
 urlpatterns = [
+    path("bible-verses/", BibleReferenceView.as_view(), name="bible-verse"),
     path("", include(router.urls)),
 ]

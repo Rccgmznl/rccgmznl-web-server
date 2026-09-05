@@ -2,7 +2,7 @@ from drf_spectacular.utils import extend_schema_view, extend_schema, inline_seri
 from django.db import transaction
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -13,13 +13,46 @@ from rest_framework.views import APIView
 from apps.basic_events.models import BasicEvent, BibleReference, HeroImage, About, Sermon
 from apps.basic_events.serializers import AboutSerializer, BasicEventSerializer, BibleReferenceSerializer, HeroImageOrderSerializer, HeroImageSerializer, SermonSerializer
 
-class BibleReferenceViewSet(viewsets.ModelViewSet):
-    queryset = BibleReference.objects.all()
-    serializer_class = BibleReferenceSerializer
-    http_method_names = ["get", "post", "put", "patch", "delete"]
-    permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    pagination_class = PageNumberPagination
+class BibleReferenceView(APIView):
+    parser_classes = [JSONParser]
+
+    def get_permissions(self):
+        permission_class = AllowAny if self.request.method == "GET" else IsAuthenticated
+        return [permission_class()]
+
+    @extend_schema(
+        summary="Retrieve the featured Bible verse",
+        responses={200: BibleReferenceSerializer},
+        tags=["Hero Bible verses"],
+    )
+    def get(self, request):
+        verse = BibleReference.objects.filter(pk=1).first()
+        if verse is None:
+            return Response(
+                {"detail": "The featured Bible verse has not been configured."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response(BibleReferenceSerializer(verse).data)
+
+    @extend_schema(
+        summary="Update the featured Bible verse",
+        request=BibleReferenceSerializer,
+        responses={200: BibleReferenceSerializer, 201: BibleReferenceSerializer},
+        tags=["Hero Bible verses"],
+    )
+    def patch(self, request):
+        verse = BibleReference.objects.filter(pk=1).first()
+        serializer = BibleReferenceSerializer(
+            verse,
+            data=request.data,
+            partial=verse is not None,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        response_status = (
+            status.HTTP_200_OK if verse is not None else status.HTTP_201_CREATED
+        )
+        return Response(serializer.data, status=response_status)
 
 
 @extend_schema_view(
@@ -153,92 +186,6 @@ class BasicEventViewSet(viewsets.ModelViewSet):
 
         return Response(self.get_serializer(event).data)
     
-@extend_schema_view(
-    list=extend_schema(
-        summary="List all Bible verses",
-        description="Endpoint to list all Bible verses",
-        responses={
-            200: BibleReferenceSerializer,
-            401: inline_serializer(
-                name="Unauthorized",
-                fields={
-                    "detail": "string",
-                },
-            ),
-        },
-        tags=["Hero Bible verses"],
-    ),
-    retrieve=extend_schema(
-        summary="Retrieve a Bible verse",
-        description="Endpoint to retrieve a Bible verse by its ID",
-        responses={
-            200: BibleReferenceSerializer,
-            401: inline_serializer(
-                name="Unauthorized",
-                fields={
-                    "detail": "string",
-                },
-            ),
-        },
-        tags=["Hero Bible verses"], 
-    ),
-    create=extend_schema(
-        summary="Create a new Bible verse",
-        description="Endpoint to create a new Bible verse",
-        responses={
-            201: BibleReferenceSerializer,
-            401: inline_serializer(
-                name="Unauthorized",
-                fields={
-                    "detail": "string",
-                },
-            ),
-        },
-        tags=["Hero Bible verses"],
-    ),
-    update=extend_schema(
-        summary="Update an existing Bible verse",
-        description="Endpoint to update an existing Bible verse by its ID",
-        responses={
-            200: BibleReferenceSerializer,
-            401: inline_serializer(
-                name="Unauthorized",
-                fields={
-                    "detail": "string",
-                },
-            ),
-        },
-        tags=["Hero Bible verses"],
-    ),
-    partial_update=extend_schema(
-        summary="Partially update an existing Bible verse",
-        description="Endpoint to partially update an existing Bible verse by its ID",
-        responses={
-            200: BibleReferenceSerializer,
-            401: inline_serializer(
-                name="Unauthorized",
-                fields={
-                    "detail": "string",
-                },
-            ),
-        },
-        tags=["Hero Bible verses"],
-    ),
-    destroy=extend_schema(
-        summary="Delete a Bible verse",
-        description="Endpoint to delete a Bible verse by its ID",
-        responses={
-            204: None,
-            401: inline_serializer(
-                name="Unauthorized",
-                fields={
-                    "detail": "string",
-                },
-            ),
-        },
-        tags=["Hero Bible verses"],
-    ),
-)
 class HeroImageViewSet(viewsets.ModelViewSet):
     queryset = HeroImage.objects.order_by("order")
     serializer_class = HeroImageSerializer

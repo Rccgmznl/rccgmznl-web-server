@@ -19,6 +19,11 @@ class BasicEvent(models.Model):
         verbose_name_plural = "Basic Events"
 
 class BibleReference(models.Model):
+    id = models.PositiveSmallIntegerField(
+        primary_key=True,
+        default=1,
+        editable=False,
+    )
     reference = models.CharField(max_length=255)
     text = models.TextField()
 
