@@ -145,9 +145,8 @@ interface Sermon {
 
 | Method | Endpoint | Auth | Purpose |
 |---|---|---|---|
-| GET | `/api/about/` | Public | Get About sections |
-| POST | `/api/about/` | Admin | Create an About section with its image |
-| PATCH | `/api/about/{id}/` | Admin | Update About text and optionally replace its image |
+| GET | `/api/about/` | Public | Get the single About dataset |
+| PATCH | `/api/about/` | Admin | Create or update the single About dataset |
 
 Create and update requests use `multipart/form-data`. Send the image in the same request as the other fields:
 
@@ -160,7 +159,7 @@ mission: ...
 vision: ...
 ```
 
-`image` is required when creating an About section and optional when updating one. If it is omitted during an update, the existing image is retained. The response returns the complete canonical About object, including the generated `image_url`.
+`image` is required when configuring About for the first time and optional on later updates. If it is omitted during an update, the existing image is retained. The response returns the complete canonical About object, including the generated `image_url`. There is no About list, detail, or delete endpoint.
 
 ```ts
 interface About {

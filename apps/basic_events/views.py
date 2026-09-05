@@ -5,12 +5,22 @@ from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.views import APIView
 from apps.basic_events.models import BasicEvent, BibleReference, HeroImage, About, Sermon
 from apps.basic_events.serializers import AboutSerializer, BasicEventSerializer, BibleReferenceSerializer, HeroImageOrderSerializer, HeroImageSerializer, SermonSerializer
+
+class BibleReferenceViewSet(viewsets.ModelViewSet):
+    queryset = BibleReference.objects.all()
+    serializer_class = BibleReferenceSerializer
+    http_method_names = ["get", "post", "put", "patch", "delete"]
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    pagination_class = PageNumberPagination
+
 
 @extend_schema_view(
     list=extend_schema(
@@ -226,101 +236,7 @@ class BasicEventViewSet(viewsets.ModelViewSet):
                 },
             ),
         },
-        tags=["Hero Bible verses"], 
-    ),
-)
-class BibleReferenceViewSet(viewsets.ModelViewSet):
-    queryset = BibleReference.objects.all()
-    serializer_class = BibleReferenceSerializer
-    http_method_names = ["get", "post", "put", "patch", "delete"]
-    permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    pagination_class = PageNumberPagination
-
-@extend_schema_view(
-    list=extend_schema(
-        summary="List all hero images",
-        description="Endpoint to list all hero images",
-        responses={
-            200: HeroImageSerializer,
-            401: inline_serializer(
-                name="Unauthorized",
-                fields={
-                    "detail": "string",
-                },
-            ),
-        },
-        tags=["Hero-Images"],
-    ),
-    retrieve=extend_schema(
-        summary="Retrieve a hero image",
-        description="Endpoint to retrieve a hero image by its ID",
-        responses={
-            200: HeroImageSerializer,
-            401: inline_serializer(
-                name="Unauthorized",
-                fields={
-                    "detail": "string",
-                },
-            ),
-        },
-        tags=["Hero-Images"],
-    ),
-    create=extend_schema(
-        summary="Create a new hero image",
-        description="Endpoint to create a new hero image",
-        responses={
-            201: HeroImageSerializer,
-            401: inline_serializer(
-                name="Unauthorized",
-                fields={
-                    "detail": "string",
-                },
-            ),
-        },
-        tags=["Hero-Images"],
-    ),
-    update=extend_schema(
-        summary="Update an existing hero image",
-        description="Endpoint to update an existing hero image by its ID",
-        responses={
-            200: HeroImageSerializer,
-            401: inline_serializer(
-                name="Unauthorized",
-                fields={
-                    "detail": "string",
-                },
-            ),
-        },
-        tags=["Hero-Images"],
-    ),
-    partial_update=extend_schema(
-        summary="Partially update an existing hero image",
-        description="Endpoint to partially update an existing hero image by its ID",
-        responses={
-            200: HeroImageSerializer,
-            401: inline_serializer(
-                name="Unauthorized",
-                fields={
-                    "detail": "string",
-                },
-            ),
-        },
-        tags=["Hero-Images"],
-    ),
-    destroy=extend_schema(
-        summary="Delete a hero image",
-        description="Endpoint to delete a hero image by its ID",
-        responses={
-            204: None,
-            401: inline_serializer(
-                name="Unauthorized",
-                fields={
-                    "detail": "string",
-                },
-            ),
-        },
-        tags=["Hero-Images"],   
+        tags=["Hero Bible verses"],
     ),
 )
 class HeroImageViewSet(viewsets.ModelViewSet):
@@ -475,6 +391,59 @@ class AboutViewSet(viewsets.ModelViewSet):
     parser_classes = [MultiPartParser, FormParser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     pagination_class = PageNumberPagination
+
+
+class AboutView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get_permissions(self):
+        permission_class = AllowAny if self.request.method == "GET" else IsAuthenticated
+        return [permission_class()]
+
+    @extend_schema(
+        summary="Retrieve the About content",
+        responses={
+            200: AboutSerializer,
+            404: inline_serializer(
+                name="AboutNotFoundError",
+                fields={"detail": "string"},
+            ),
+        },
+        tags=["About"],
+    )
+    def get(self, request):
+        about = About.objects.filter(pk=1).first()
+        if about is None:
+            return Response(
+                {"detail": "About content has not been configured."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response(AboutSerializer(about, context={"request": request}).data)
+
+    @extend_schema(
+        summary="Update the About content",
+        description=(
+            "Update the single About dataset using multipart form data. "
+            "Include an image when configuring About for the first time."
+        ),
+        request=AboutSerializer,
+        responses={200: AboutSerializer, 201: AboutSerializer},
+        tags=["About"],
+    )
+    def patch(self, request):
+        about = About.objects.filter(pk=1).first()
+        serializer = AboutSerializer(
+            about,
+            data=request.data,
+            partial=about is not None,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        response_status = (
+            status.HTTP_200_OK if about is not None else status.HTTP_201_CREATED
+        )
+        return Response(serializer.data, status=response_status)
 
 @extend_schema_view(
     list=extend_schema(

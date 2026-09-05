@@ -153,6 +153,7 @@ class AboutSerializer(serializers.ModelSerializer):
             request=self.context.get("request"),
         )
         validated_data["image_url"] = upload_result["url"]
+        validated_data["id"] = 1
         return super().create(validated_data)
 
     def update(self, instance, validated_data):

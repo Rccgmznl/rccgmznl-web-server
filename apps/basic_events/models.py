@@ -83,6 +83,11 @@ class HeroGallery(models.Model):
         verbose_name = "Hero Gallery"
         verbose_name_plural = "Hero Galleries"
 class About(models.Model):
+    id = models.PositiveSmallIntegerField(
+        primary_key=True,
+        default=1,
+        editable=False,
+    )
     title = models.CharField(max_length=255)
     description = models.TextField()
     image_url = models.URLField()
