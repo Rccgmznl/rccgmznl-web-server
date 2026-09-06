@@ -35,8 +35,8 @@ Scope: featured Bible verse, hero images, welcome section, and homepage event co
 
 | Method | Endpoint | Auth | Purpose |
 |---|---|---|---|
-| GET | `/api/hero/bible-verses/` | Public | Get hero bible verse |
-| PATCH | `/api/hero/bible-verses/` | Admin | Update hero bible verse |
+| GET | `/api/hero/bible-verse/` | Public | Get hero bible verse |
+| PATCH | `/api/hero/bible-verse/` | Admin | Update hero bible verse |
 
 The Bible verse is a singleton dataset. `GET` returns the one configured verse. `PATCH` creates it the first time if it does not exist, then updates it thereafter. There are no list, detail, or delete endpoints.
 
@@ -109,15 +109,15 @@ interface UpcomingEvent {
   description: string;
   start_date: string; // YYYY-MM-DD
   cover_image: { url: string; alt_text: string };
-  external_url: string;
+  external_url?: string;
 }
 ```
 
 GET sorts by `start_date` ascending and returns only events with `start_date >= today`. With `limit=1`, `data` is an array of zero or one event. Empty array is valid and means no upcoming event.
 
-POST uses multipart form data with `title`, `description`, `start_date`, `cover_image: File`, `cover_image_alt_text`, and `external_url`. The image is uploaded and stored as part of the same request.
+POST uses multipart form data with `title`, `description`, `start_date`, `cover_image: File`, `cover_image_alt_text`, and optional `external_url`. The image is uploaded and stored as part of the same request.
 
-PUT and PATCH use multipart form data with the same fields. `cover_image` is optional when updating; if no new image is supplied, the existing cover is retained. Response returns the complete updated event.
+PUT and PATCH use multipart form data with the same fields. `cover_image` and `external_url` are optional when updating; if no new image is supplied, the existing cover is retained. Response returns the complete updated event.
 
 Frontend limits: title 120 chars, description 1000 chars, cover max 1.5 MB, JPEG/PNG/WebP/AVIF. Backend should reject past start dates.
 
@@ -142,7 +142,7 @@ interface Sermon {
   external_url: string;
 }
 
-Create and update requests use `multipart/form-data` with `title`, `description`, `date`, `cover_image: File`, `cover_image_alt_text`, `preacher`, `tags`, and `external_url`. `cover_image` is required on create and optional on update. If omitted during an update, the existing cover image is retained. The existing `/api/sermons/` route remains available as a backwards-compatible alias.
+Create and update requests use `multipart/form-data` with `title`, `description`, `date`, `cover_image: File`, `cover_image_alt_text`, `preacher`, `tags`, and optional `external_url`. `cover_image` is required on create and optional on update. If omitted during an update, the existing cover image is retained.
 ```
 
 ## Hero About

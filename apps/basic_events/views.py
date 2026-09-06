@@ -1,6 +1,7 @@
 from drf_spectacular.utils import extend_schema_view, extend_schema, inline_serializer
 from django.db import transaction
-from rest_framework import status, viewsets
+from django.utils import timezone
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
@@ -11,7 +12,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
 from apps.basic_events.models import BasicEvent, BibleReference, HeroImage, About, Sermon
-from apps.basic_events.serializers import AboutSerializer, BasicEventSerializer, BibleReferenceSerializer, HeroImageOrderSerializer, HeroImageSerializer, SermonSerializer
+from apps.basic_events.serializers import AboutSerializer, BasicEventSerializer, BibleReferenceSerializer, HeroImageOrderSerializer, HeroImageSerializer, SermonSerializer, SermonUploadRequestSerializer
 
 class BibleReferenceView(APIView):
     parser_classes = [JSONParser]
@@ -23,7 +24,7 @@ class BibleReferenceView(APIView):
     @extend_schema(
         summary="Retrieve the featured Bible verse",
         responses={200: BibleReferenceSerializer},
-        tags=["Hero Bible verses"],
+        tags=["Hero Bible verse"],
     )
     def get(self, request):
         verse = BibleReference.objects.filter(pk=1).first()
@@ -38,7 +39,7 @@ class BibleReferenceView(APIView):
         summary="Update the featured Bible verse",
         request=BibleReferenceSerializer,
         responses={200: BibleReferenceSerializer, 201: BibleReferenceSerializer},
-        tags=["Hero Bible verses"],
+        tags=["Hero Bible verse"],
     )
     def patch(self, request):
         verse = BibleReference.objects.filter(pk=1).first()
@@ -134,7 +135,10 @@ class BibleReferenceView(APIView):
         summary="Delete a basic event",
         description="Endpoint to delete a basic event by its ID",
         responses={
-            204: None,
+            200: inline_serializer(
+                name="BasicEventDeleteResponse",
+                fields={"id": serializers.IntegerField()},
+            ),
             401: inline_serializer(
                 name="Unauthorized",
                 fields={
@@ -149,7 +153,6 @@ class BasicEventViewSet(viewsets.ModelViewSet):
     queryset = BasicEvent.objects.all()
     serializer_class = BasicEventSerializer
     http_method_names = ["get", "post", "put", "patch", "delete"]
-    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["title", "start_date"]
@@ -158,9 +161,19 @@ class BasicEventViewSet(viewsets.ModelViewSet):
     ordering = ["start_date", "title"]
     pagination_class = PageNumberPagination
 
+    def get_permissions(self):
+        permission_class = AllowAny if self.request.method == "GET" else IsAuthenticated
+        return [permission_class()]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance_id = instance.pk
+        self.perform_destroy(instance)
+        return Response({"id": instance_id}, status=status.HTTP_200_OK)
+
     @extend_schema(
-        summary="Retrieve the most recent basic event",
-        description="Endpoint to retrieve the basic event with the latest start date",
+        summary="Retrieve the next upcoming basic event",
+        description="Endpoint to retrieve the earliest basic event scheduled for today or later",
         responses={
             200: BasicEventSerializer,
             401: inline_serializer(
@@ -180,7 +193,12 @@ class BasicEventViewSet(viewsets.ModelViewSet):
     )
     @action(detail=False, methods=["get"])
     def upcoming(self, request):
-        event = self.get_queryset().order_by("-start_date").first()
+        event = (
+            self.get_queryset()
+            .filter(start_date__gte=timezone.localdate())
+            .order_by("start_date", "title")
+            .first()
+        )
         if event is None:
             return Response({"detail": "No basic events found."}, status=404)
 
@@ -192,7 +210,13 @@ class BasicEventViewSet(viewsets.ModelViewSet):
     create=extend_schema(tags=["Hero-Images"]),
     update=extend_schema(tags=["Hero-Images"]),
     partial_update=extend_schema(tags=["Hero-Images"]),
-    destroy=extend_schema(tags=["Hero-Images"]),
+    destroy=extend_schema(
+        responses=inline_serializer(
+            name="HeroImageDeleteResponse",
+            fields={"id": serializers.IntegerField()},
+        ),
+        tags=["Hero-Images"],
+    ),
 )
 class HeroImageViewSet(viewsets.ModelViewSet):
     queryset = HeroImage.objects.order_by("order")
@@ -205,6 +229,12 @@ class HeroImageViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         permission_class = AllowAny if self.request.method == "GET" else IsAuthenticated
         return [permission_class()]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance_id = instance.pk
+        self.perform_destroy(instance)
+        return Response({"id": instance_id}, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -407,18 +437,21 @@ class AboutView(APIView):
     list=extend_schema(
         summary="Retrieve a list of sermons",
         description="Endpoint to retrieve a list of sermons",
+        request=None,
         responses={200: SermonSerializer},
         tags=["Sermon"],
     ),
     retrieve=extend_schema(
         summary="Retrieve a specific sermon",
         description="Endpoint to retrieve a specific sermon by its ID",
+        request=None,
         responses={200: SermonSerializer},
         tags=["Sermon"],
     ),
     create=extend_schema(
         summary="Create a new sermon",
         description="Endpoint to create a new sermon",
+        request=SermonUploadRequestSerializer,
         responses={
             201: SermonSerializer,
             401: inline_serializer(
@@ -433,6 +466,7 @@ class AboutView(APIView):
     update=extend_schema(
         summary="Update an existing sermon",
         description="Endpoint to update an existing sermon by its ID",
+        request=SermonUploadRequestSerializer,
         responses={
             200: SermonSerializer,
             401: inline_serializer(
@@ -447,6 +481,7 @@ class AboutView(APIView):
     partial_update=extend_schema(
         summary="Partially update an existing sermon",
         description="Endpoint to partially update an existing sermon by its ID",
+        request=SermonUploadRequestSerializer,
         responses={
             200: SermonSerializer,
             401: inline_serializer(
@@ -462,7 +497,10 @@ class AboutView(APIView):
         summary="Delete a sermon",
         description="Endpoint to delete a sermon by its ID",
         responses={
-            204: None,
+            200: inline_serializer(
+                name="SermonDeleteResponse",
+                fields={"id": serializers.IntegerField()},
+            ),
             401: inline_serializer(
                 name="Unauthorized",
                 fields={
@@ -484,3 +522,9 @@ class SermonViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         permission_class = AllowAny if self.request.method == "GET" else IsAuthenticated
         return [permission_class()]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance_id = instance.pk
+        self.perform_destroy(instance)
+        return Response({"id": instance_id}, status=status.HTTP_200_OK)

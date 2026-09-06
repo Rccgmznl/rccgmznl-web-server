@@ -13,6 +13,7 @@ from apps.basic_events.models import (
 class BasicEventSerializer(serializers.ModelSerializer):
     cover_image = serializers.FileField(write_only=True, required=False)
     cover_image_url = serializers.URLField(read_only=True)
+    external_url = serializers.URLField(required=False, allow_blank=True)
 
     class Meta:
         model = BasicEvent
@@ -155,6 +156,24 @@ class SermonSerializer(serializers.ModelSerializer):
             validated_data["cover_image_url"] = upload_result["url"]
 
         return super().update(instance, validated_data)
+
+
+class SermonUploadRequestSerializer(serializers.ModelSerializer):
+    cover_image = serializers.FileField(required=False)
+    external_url = serializers.URLField(required=False, allow_blank=True)
+
+    class Meta:
+        model = Sermon
+        fields = [
+            "title",
+            "description",
+            "date",
+            "cover_image",
+            "cover_image_alt_text",
+            "preacher",
+            "tags",
+            "external_url",
+        ]
 
 class HeroGallerySerializer(serializers.ModelSerializer):
     class Meta:

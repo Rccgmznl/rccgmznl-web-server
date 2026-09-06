@@ -9,7 +9,7 @@ class BasicEvent(models.Model):
     start_date = models.DateField()
     cover_image_url = models.URLField()
     cover_image_alt_text = models.CharField(max_length=255)
-    external_url = models.URLField()
+    external_url = models.URLField(blank=True)
 
     def __str__(self):
         return self.title
@@ -67,7 +67,7 @@ class Sermon(models.Model):
     cover_image_alt_text = models.CharField(max_length=255)
     preacher = models.CharField(max_length=255)
     tags = models.CharField(max_length=255)
-    external_url = models.URLField()
+    external_url = models.URLField(blank=True)
 
     def __str__(self):
         return self.title

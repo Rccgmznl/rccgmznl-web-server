@@ -6,6 +6,6 @@ router = DefaultRouter()
 router.register(r"images", HeroImageViewSet, basename="images")
 
 urlpatterns = [
-    path("bible-verses/", BibleReferenceView.as_view(), name="bible-verse"),
+    path("bible-verse/", BibleReferenceView.as_view(), name="bible-verse"),
     path("", include(router.urls)),
 ]
