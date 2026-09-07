@@ -48,6 +48,11 @@ class HeroImage(models.Model):
         verbose_name_plural = "Hero Images"
 
 class WelcomeContent(models.Model):
+    id = models.PositiveSmallIntegerField(
+        primary_key=True,
+        default=1,
+        editable=False,
+    )
     text = models.TextField()
     image_url = models.URLField()
     image_alt_text = models.CharField(max_length=255)

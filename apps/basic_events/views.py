@@ -11,8 +11,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
-from apps.basic_events.models import BasicEvent, BibleReference, HeroImage, About, Sermon
-from apps.basic_events.serializers import AboutSerializer, BasicEventSerializer, BibleReferenceSerializer, HeroImageOrderSerializer, HeroImageSerializer, SermonSerializer, SermonUploadRequestSerializer
+from apps.basic_events.models import BasicEvent, BibleReference, HeroImage, About, Sermon, WelcomeContent
+from apps.basic_events.serializers import AboutSerializer, BasicEventSerializer, BibleReferenceSerializer, HeroImageOrderSerializer, HeroImageSerializer, SermonSerializer, SermonUploadRequestSerializer, WelcomeContentSerializer
 
 class BibleReferenceView(APIView):
     parser_classes = [JSONParser]
@@ -52,6 +52,57 @@ class BibleReferenceView(APIView):
         serializer.save()
         response_status = (
             status.HTTP_200_OK if verse is not None else status.HTTP_201_CREATED
+        )
+        return Response(serializer.data, status=response_status)
+
+
+class WelcomeContentView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get_permissions(self):
+        permission_class = AllowAny if self.request.method == "GET" else IsAuthenticated
+        return [permission_class()]
+
+    @extend_schema(
+        summary="Retrieve the welcome content",
+        responses={
+            200: WelcomeContentSerializer,
+            404: inline_serializer(
+                name="WelcomeContentNotFoundError",
+                fields={"detail": serializers.CharField()},
+            ),
+        },
+        tags=["Welcome"],
+    )
+    def get(self, request):
+        welcome = WelcomeContent.objects.filter(pk=1).first()
+        if welcome is None:
+            return Response(
+                {"detail": "Welcome content has not been configured."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response(
+            WelcomeContentSerializer(welcome, context={"request": request}).data
+        )
+
+    @extend_schema(
+        summary="Update the welcome content",
+        request=WelcomeContentSerializer,
+        responses={200: WelcomeContentSerializer, 201: WelcomeContentSerializer},
+        tags=["Welcome"],
+    )
+    def patch(self, request):
+        welcome = WelcomeContent.objects.filter(pk=1).first()
+        serializer = WelcomeContentSerializer(
+            welcome,
+            data=request.data,
+            partial=welcome is not None,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        response_status = (
+            status.HTTP_200_OK if welcome is not None else status.HTTP_201_CREATED
         )
         return Response(serializer.data, status=response_status)
 
