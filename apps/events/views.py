@@ -3,7 +3,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import serializers, viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -20,10 +20,6 @@ from apps.events.services import upload_gallery_image_file
         ),
         responses={
             200: EventSerializer(many=True),
-            401: inline_serializer(
-                name="EventsUnauthorizedError",
-                fields={"detail": serializers.CharField()},
-            ),
         },
         tags=["Events-V2"],
     ),
@@ -32,10 +28,6 @@ from apps.events.services import upload_gallery_image_file
         description="Retrieve a single event by ID.",
         responses={
             200: EventSerializer,
-            401: inline_serializer(
-                name="EventUnauthorizedError",
-                fields={"detail": serializers.CharField()},
-            ),
             404: inline_serializer(
                 name="EventNotFoundError",
                 fields={"detail": serializers.CharField()},
@@ -165,6 +157,12 @@ class EventViewSet(viewsets.ModelViewSet):
     search_fields = ["title", "description"]
     ordering_fields = ["created_at", "updated_at", "title"]
     ordering = ["-created_at"]
+
+    def get_permissions(self):
+        if self.request.method in SAFE_METHODS:
+            return [AllowAny()]
+
+        return [permission() for permission in self.permission_classes]
 
 
 class GalleryImageUploadView(APIView):
