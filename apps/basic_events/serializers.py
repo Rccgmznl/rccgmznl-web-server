@@ -118,9 +118,61 @@ class HeroImageOrderSerializer(serializers.Serializer):
         return images
 
 class WelcomeContentSerializer(serializers.ModelSerializer):
+    text = serializers.CharField(max_length=600)
+    image = serializers.FileField(write_only=True, required=False)
+    image_alt_text = serializers.CharField(
+        write_only=True,
+        required=False,
+        allow_blank=True,
+    )
+
     class Meta:
         model = WelcomeContent
-        fields = "__all__"
+        fields = ["text", "image", "image_alt_text"]
+
+    def to_representation(self, instance):
+        return {
+            "text": instance.text,
+            "image": {
+                "url": instance.image_url,
+                "alt_text": instance.image_alt_text,
+            },
+        }
+
+    def validate_image(self, value):
+        validate_gallery_image_file(value)
+        return value
+
+    def create(self, validated_data):
+        image = validated_data.pop("image", None)
+        if image is None:
+            raise serializers.ValidationError(
+                {"image": "This field is required when configuring welcome content."}
+            )
+
+        upload_result = upload_gallery_image_file(
+            image,
+            request=self.context.get("request"),
+        )
+        validated_data["image_url"] = upload_result["url"]
+        validated_data["image_alt_text"] = validated_data.get(
+            "image_alt_text",
+            image.name,
+        )
+        validated_data["id"] = 1
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        image = validated_data.pop("image", None)
+        if image is not None:
+            upload_result = upload_gallery_image_file(
+                image,
+                request=self.context.get("request"),
+            )
+            validated_data["image_url"] = upload_result["url"]
+            validated_data.setdefault("image_alt_text", image.name)
+
+        return super().update(instance, validated_data)
 
 class SermonSerializer(serializers.ModelSerializer):
     cover_image = serializers.FileField(write_only=True, required=False)
