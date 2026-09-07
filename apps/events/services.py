@@ -19,22 +19,38 @@ CONTENT_TYPE_TO_EXTENSION = {
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
+def detect_image_content_type(uploaded_file):
+    uploaded_file.seek(0)
+    header = uploaded_file.read(32)
+    uploaded_file.seek(0)
+
+    if header.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if header.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if header[:4] == b"RIFF" and header[8:12] == b"WEBP":
+        return "image/webp"
+    return None
+
+
 def validate_gallery_image_file(uploaded_file):
-    content_type = getattr(uploaded_file, "content_type", None)
+    content_type = detect_image_content_type(uploaded_file)
     if content_type not in ALLOWED_GALLERY_IMAGE_CONTENT_TYPES:
         raise ValidationError("Only JPEG, PNG, and WEBP files are allowed.")
 
     if uploaded_file.size > MAX_GALLERY_IMAGE_SIZE:
         raise ValidationError("File size must not exceed 10MB.")
 
+    return content_type
+
 
 def upload_gallery_image_file(uploaded_file, request=None):
-    validate_gallery_image_file(uploaded_file)
+    content_type = validate_gallery_image_file(uploaded_file)
 
     extension = Path(uploaded_file.name).suffix.lower()
     if extension not in ALLOWED_EXTENSIONS:
         extension = CONTENT_TYPE_TO_EXTENSION.get(
-            getattr(uploaded_file, "content_type", None),
+            content_type,
             ".jpg",
         )
 

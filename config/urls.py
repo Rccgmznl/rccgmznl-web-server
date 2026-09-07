@@ -29,21 +29,31 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     
     # API Documentation
-    path("api/v1/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
-        "api/v1/schema/swagger/",
+        f"api/{settings.API_DEFAULT_VERSION}/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        f"api/{settings.API_DEFAULT_VERSION}/schema/swagger/",
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger-ui",
     ),
     path(
-        "api/v1/schema/redoc/",
+        f"api/{settings.API_DEFAULT_VERSION}    /schema/redoc/",
         SpectacularRedocView.as_view(url_name="schema"),
         name="redoc",
     ),
     
     # API v1
-    path("api/v1/auth/", include("apps.users.urls")),
-    path("api/v1/events/", include("apps.events.urls")),
+    path(
+        f"api/{settings.API_DEFAULT_VERSION}/auth/",
+        include("apps.users.urls"),
+    ),
+    # path(f"api/{settings.API_DEFAULT_VERSION}/events/", include("apps.events.urls")),
+    path(f"api/{settings.API_DEFAULT_VERSION}/events/", include("apps.basic_events.urls")),
+    path(f"api/{settings.API_DEFAULT_VERSION}/hero/", include("apps.basic_events.hero_urls")),
+    path(f"api/{settings.API_DEFAULT_VERSION}/about/", include("apps.basic_events.about_urls")),
+    path(f"api/{settings.API_DEFAULT_VERSION}/sermons/", include("apps.basic_events.sermon_urls")),
+   
+    
 ]
 
 if settings.DEBUG:

@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     "django_filters",
     "apps.users",
     "apps.events",
+    "apps.basic_events",
 ]
 
 # ==========================
@@ -523,7 +524,8 @@ SPECTACULAR_SETTINGS = {
     ],
     "TAGS": [
         {"name": "Authentication", "description": "User authentication endpoints"},
-        {"name": "Users", "description": "User management endpoints"},
+        # {"name": "Basic Events", "description": "Basic event management endpoints"},
+        # {"name": "Users", "description": "User management endpoints"},
     ],
     "SORT_OPERATION_PARAMETERS": False,
     "ENUM_GENERATE_CHOICE_DESCRIPTION": True,
